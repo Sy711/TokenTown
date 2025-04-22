@@ -1,0 +1,629 @@
+"use client"
+
+import { useState, useEffect,useMemo } from "react"
+import { motion } from "framer-motion"
+import { DndContext, type DragEndEvent, useDraggable, useDroppable } from "@dnd-kit/core"
+import { Wallet, Loader2, RefreshCw, Send, Trophy, Clock, Info } from "lucide-react"
+import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useCurrentAccount, useSuiClient ,useSuiClientQuery} from '@mysten/dapp-kit';
+// 定义卡牌类型
+type CardType = "wusdc" | "wbtc" | "wal" | "cetus" | "usdt" | "sui" | "navx" | "deep"
+
+// 卡牌数据结构
+interface Card {
+  id: string
+  type: CardType
+  image: string
+}
+
+// 卡槽数据结构
+interface CardSlot {
+  id: string
+  cards: Card[]
+}
+
+interface Props {
+  accountAddress: string ;
+}
+export default function GameBoard({ accountAddress }: Props) {
+  const [gameState, setGameState] = useState<"playing" | "submitted" | "finished">("playing")
+  const [cardSlots, setCardSlots] = useState<CardSlot[]>([])
+  const [targetStack, setTargetStack] = useState<Card[]>([])
+  const [selectedCardType, setSelectedCardType] = useState<CardType | null>(null)
+  const [drawCount, setDrawCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showRules, setShowRules] = useState(false)
+  const [showRankings, setShowRankings] = useState(false)
+  console.log(accountAddress,"account")
+  const client = useSuiClient();
+  // 修改后的余额查询代码
+  const { 
+    data: balance, 
+    isLoading: isBalanceLoading, 
+    error: balanceError 
+  } = useSuiClientQuery('getBalance', {
+    owner: accountAddress,
+    coinType: '0x2::sui::SUI',
+  }, {
+    enabled: !!accountAddress,
+    refetchInterval: 3000
+  });
+  
+  // 添加调试信息
+  useEffect(() => {
+    console.log('当前账户地址:', accountAddress);
+    console.log('余额查询结果:', balance);
+    if (balanceError) {
+      console.error('余额查询错误:', balanceError);
+    }
+  }, [accountAddress, balance, balanceError]);
+  
+  // 修改后的余额显示逻辑
+  const walletBalance = useMemo(() => {
+    if (!balance || !balance.totalBalance) {
+      return 0;
+    }
+    console.log(balance.totalBalance,"balance")
+    console.log(Number(balance?.totalBalance) / 1e9,"balance2")
+
+    return Number(balance?.totalBalance) / 1e9;
+  }, [balance]);
+  const [currentCardTypes, setCurrentCardTypes] = useState<CardType[]>([])
+
+  // 排行榜数据
+  const rankings = [
+    { rank: 1, player: "Player123", cards: 12, reward: "2.5 SUI" },
+    { rank: 2, player: "CryptoKing", cards: 10, reward: "1.5 SUI" },
+    { rank: 3, player: "BlockMaster", cards: 9, reward: "1.0 SUI" },
+    { rank: 4, player: "TokenFan", cards: 8, reward: "0.5 SUI" },
+    { rank: 5, player: "SuiLover", cards: 7, reward: "0.3 SUI" },
+  ]
+
+  // 初始化游戏
+  useEffect(() => {
+    // 初始化空卡槽
+    initializeEmptySlots()
+
+
+  }, [])
+
+  // 初始化空卡槽
+  const initializeEmptySlots = () => {
+    const slots: CardSlot[] = []
+    // 创建7个空卡槽
+    for (let i = 0; i < 7; i++) {
+      slots.push({
+        id: `slot-${i}`,
+        cards: [],
+      })
+    }
+    setCardSlots(slots)
+  }
+
+  // 处理卡牌拖拽结束
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over) return
+
+    const cardId = active.id as string
+    const [sourceSlotId, cardIndex] = getCardLocation(cardId)
+
+    if (!sourceSlotId || cardIndex === -1) return
+
+    // 找到被拖拽的卡牌
+    const sourceSlotIndex = cardSlots.findIndex((slot) => slot.id === sourceSlotId)
+    if (sourceSlotIndex === -1) return
+
+    const card = cardSlots[sourceSlotIndex].cards[cardIndex]
+
+    // 检查是否是最顶层的卡牌
+    const isTopCard = cardIndex === cardSlots[sourceSlotIndex].cards.length - 1
+
+    // 如果不是最顶层卡牌，不允许拖拽
+    if (!isTopCard) return
+
+    // 如果目标是目标堆
+    if (over.id === "target-stack") {
+      // 检查是否已经选择了卡牌类型
+      if (selectedCardType === null) {
+        // 第一次选择，设置目标卡牌类型
+        setSelectedCardType(card.type)
+        // 移动所有相同类型的卡牌
+        moveAllSameTypeCards(sourceSlotIndex, card.type, "target")
+      } else if (card.type === selectedCardType) {
+        // 类型匹配，移动所有相同类型的卡牌
+        moveAllSameTypeCards(sourceSlotIndex, card.type, "target")
+      }
+    }
+    // 如果目标是另一个卡槽
+    else if (typeof over.id === "string" && over.id.startsWith("slot-")) {
+      const targetSlotIndex = cardSlots.findIndex((slot) => slot.id === over.id)
+      if (targetSlotIndex === -1 || targetSlotIndex === sourceSlotIndex) return
+
+      // 检查目标卡槽中是否有卡牌
+      if (cardSlots[targetSlotIndex].cards.length > 0) {
+        // 检查目标卡槽顶部卡牌类型是否与拖拽卡牌类型一致
+        const targetTopCard = cardSlots[targetSlotIndex].cards[cardSlots[targetSlotIndex].cards.length - 1]
+        if (targetTopCard.type !== card.type) {
+          // 类型不匹配，不允许拖拽
+          return
+        }
+      }
+
+      // 移动所有相同类型的卡牌到目标卡槽
+      moveAllSameTypeCards(sourceSlotIndex, card.type, "slot", targetSlotIndex)
+    }
+  }
+
+  // 将所有相同类型的卡牌移动到目标位置
+  const moveAllSameTypeCards = (
+    sourceSlotIndex: number,
+    cardType: CardType,
+    targetType: "target" | "slot",
+    targetSlotIndex?: number,
+  ) => {
+    const newCardSlots = [...cardSlots]
+    const sourceSlot = newCardSlots[sourceSlotIndex]
+
+    // 找出所有相同类型的卡牌
+    const sameTypeCards = sourceSlot.cards.filter((card) => card.type === cardType)
+
+    // 从源卡槽中移除这些卡牌
+    newCardSlots[sourceSlotIndex].cards = sourceSlot.cards.filter((card) => card.type !== cardType)
+
+    if (targetType === "target") {
+      // 添加到目标堆
+      setTargetStack((prev) => [...prev, ...sameTypeCards])
+    } else if (targetType === "slot" && targetSlotIndex !== undefined) {
+      // 添加到目标卡槽
+      newCardSlots[targetSlotIndex].cards = [...newCardSlots[targetSlotIndex].cards, ...sameTypeCards]
+    }
+
+    // 更新卡槽
+    setCardSlots(newCardSlots)
+  }
+
+  // 获取卡牌所在的卡槽和索引
+  const getCardLocation = (cardId: string): [string | null, number] => {
+    for (const slot of cardSlots) {
+      const cardIndex = slot.cards.findIndex((card) => card.id === cardId)
+      if (cardIndex !== -1) {
+        return [slot.id, cardIndex]
+      }
+    }
+    return [null, -1]
+  }
+
+  // 抽取新卡
+  const handleDrawCards = () => {
+    if (!accountAddress) {
+      alert("请先连接钱包");
+      return;
+    }
+    setIsLoading(true)
+
+    // 如果超过免费次数，扣除SUI
+    const currentBalance = Number(balance?.totalBalance || 0) / 1e9;
+    if (drawCount >= 6) {
+      if (currentBalance < 0.2) {
+        alert("余额不足，无法抽卡");
+        setIsLoading(false);
+        return;
+      }
+   //调用合约
+    }
+    // 模拟抽卡逻辑
+    setTimeout(() => {
+      try {
+        distributeNewCards();
+        setDrawCount(prev => prev + 1);
+      } catch (error) {
+        console.error("抽卡失败:", error);
+        alert("抽卡过程中发生错误");
+      } finally {
+        setIsLoading(false); // 确保始终重置加载状态
+      }
+    }, 1000);
+  
+  }
+  // 分配新卡牌到卡槽
+  const distributeNewCards = () => {
+    const allCardTypes: CardType[] = ["wusdc", "wbtc", "wal", "cetus", "usdt", "sui", "navx", "deep"]
+
+    // 随机选择7种卡牌类型
+    const shuffledTypes = [...allCardTypes].sort(() => Math.random() - 0.5)
+    const selectedTypes = shuffledTypes.slice(0, 7)
+
+    // 保存当前使用的卡牌类型
+    setCurrentCardTypes(selectedTypes)
+
+    const newCardSlots = [...cardSlots]
+
+    // 为每个卡槽添加4-5张新卡牌，只使用选定的7种类型
+    for (let i = 0; i < newCardSlots.length; i++) {
+      const cardCount = Math.floor(Math.random() * 2) + 4 // 4-5张卡牌
+      for (let j = 0; j < cardCount; j++) {
+        const randomType = selectedTypes[Math.floor(Math.random() * selectedTypes.length)]
+        newCardSlots[i].cards.push({
+          id: `card-${i}-${j}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          type: randomType,
+          image: `/${randomType}${randomType === "wal" || randomType === "cetus" ? ".png" : ".svg"}`,
+        })
+      }
+    }
+
+    setCardSlots(newCardSlots)
+  }
+
+  // 提交卡组
+  const handleSubmit = () => {
+    if (targetStack.length === 0) {
+      alert("请先选择卡牌")
+      return
+    }
+
+    setIsLoading(true)
+    // 模拟提交
+    setTimeout(() => {
+      setGameState("submitted")
+      setIsLoading(false)
+    }, 1500)
+  }
+
+  return (
+    <div className="relative min-h-screen w-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-4">
+      {/* 顶部状态栏 */}
+      <div className="mb-4 flex items-center justify-between rounded-lg bg-black/30 p-3 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <Wallet size={20} className="text-yellow-400" />
+          <span className="text-sm font-medium text-white">{walletBalance.toFixed(6)} SUI</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowRankings(true)}
+            className="flex items-center gap-1 rounded bg-blue-600/80 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            <Trophy size={16} />
+            排行榜
+          </button>
+          <button
+            onClick={() => setShowRules(true)}
+            className="flex items-center gap-1 rounded bg-gray-600/50 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+          >
+            <Info size={16} />
+            规则
+          </button>
+        </div>
+      </div>
+
+      {/* 游戏界面 */}
+      {gameState === "playing" && (
+        <DndContext onDragEnd={handleDragEnd}>
+          <div className="mx-auto max-w-4xl pb-24">
+            {/* 目标卡牌堆 */}
+            <div className="relative mb-8">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-300">目标卡牌堆</h3>
+                <span className="text-xs text-gray-400">
+                  {selectedCardType
+                    ? `已选择 ${selectedCardType.toUpperCase()} 类型卡牌`
+                    : "请选择一种卡牌类型作为目标"}
+                </span>
+              </div>
+              <TargetStack cards={targetStack} selectedType={selectedCardType} isLocked={gameState === "submitted"} />
+            </div>
+
+            {/* 卡牌区域 */}
+            <div className="mb-12 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-gray-300">卡牌区域</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={handleDrawCards}
+                        disabled={isLoading}
+                        className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-gray-600"
+                      >
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                        抽卡 {drawCount >= 6 ? "(0.2 SUI)" : `(${6 - drawCount}/6免费)`}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>每日前6次抽卡免费，之后每次需要0.2 SUI</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2">
+                {cardSlots.map((slot) => (
+                  <CardSlot key={slot.id} slot={slot} isDisabled={isLoading} selectedType={selectedCardType} />
+                ))}
+              </div>
+            </div>
+
+            
+            </div>
+          </DndContext>
+        )}
+
+        {/* 新增固定定位按钮容器 */}
+        {gameState === "playing" && (
+          <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform">
+            <button
+              onClick={handleSubmit}
+              disabled={targetStack.length === 0 || isLoading}
+              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-3 font-medium text-white shadow-lg transition-all hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600"
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+              提交成绩
+            </button>
+          </div>
+        )}
+
+      {/* 提交成功界面 */}
+      {gameState === "submitted" && (
+        <div className="flex h-[70vh] flex-col items-center justify-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="mb-8 rounded-2xl bg-gradient-to-b from-black/50 to-black/70 p-8 text-center backdrop-blur-md"
+          >
+            <Trophy className="mx-auto mb-4 h-20 w-20 text-yellow-400" />
+            <h2 className="mb-2 text-3xl font-bold text-white">提交成功!</h2>
+            <p className="mb-6 text-xl text-gray-300">
+              您已成功提交 {targetStack.length} 张 {selectedCardType?.toUpperCase()} 卡牌
+            </p>
+
+            <div className="mb-6 space-y-2 text-left">
+              <p className="text-sm text-gray-300">
+                当前排名: <span className="font-bold text-white">3</span>
+              </p>
+              
+              
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <Link href="/">
+                <Button variant="outline" className="bg-gray-800 text-white hover:bg-gray-700">
+                  返回首页
+                </Button>
+              </Link>
+              <Button onClick={() => setShowRankings(true)} className="bg-blue-600 hover:bg-blue-700">
+                查看排行榜
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* 规则弹窗 */}
+      <Dialog open={showRules} onOpenChange={setShowRules}>
+        <DialogContent className="bg-gray-900 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl">游戏规则</DialogTitle>
+            <DialogDescription className="text-gray-300">TokenTown 堆堆乐游戏规则说明</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div>
+              <h3 className="mb-1 font-medium text-blue-400">基本规则</h3>
+              <p>1. 初始获得30张卡牌分配至7个卡槽</p>
+              <p>2. 从卡槽中选定一类卡牌为目标堆叠卡</p>
+              <p>3. 只能将相同类型卡牌堆叠至目标卡槽</p>
+              <p>4. 每日前6次抽卡免费，之后每次抽卡0.2 SUI</p>
+              <p>5. 每日22:00停止提交，结算当天排名</p>
+            </div>
+            <div>
+              <h3 className="mb-1 font-medium text-blue-400">奖励机制</h3>
+              <p>1. 排名前5名玩家可获得金库奖励</p>
+              <p>2. 若当日有人付费抽卡，最后提交者可获得1/6金库奖励</p>
+              <p>3. 奖励将在次日自动发放至您的钱包</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 排行榜弹窗 */}
+      <Dialog open={showRankings} onOpenChange={setShowRankings}>
+        <DialogContent className="bg-gray-900 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl">今日排行榜</DialogTitle>
+            <DialogDescription className="text-gray-300">
+              当前金库总额: 25.6 SUI 
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg bg-black/50 p-4">
+              <div className="mb-3 grid grid-cols-12 text-xs font-medium text-gray-400">
+                <div className="col-span-1">排名</div>
+                <div className="col-span-4">玩家</div>
+                <div className="col-span-3">卡牌数</div>
+              </div>
+              <div className="space-y-2">
+                {rankings.map((item) => (
+                  <div key={item.rank} className="grid grid-cols-12 items-center rounded py-2 text-sm">
+                    <div className="col-span-1 font-bold">{item.rank}</div>
+                    <div className="col-span-4">{item.player}</div>
+                    <div className="col-span-3">{item.cards}张</div>
+                    <div className="col-span-4 font-medium text-green-400">{item.reward}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-gray-300">您的状态</h3>
+              <div className="rounded-lg bg-blue-900/20 p-3">
+                <div className="mb-3 text-xs text-gray-400">
+                  {targetStack.length > 0
+                    ? `已提交 ${targetStack.length} 张 ${selectedCardType?.toUpperCase()} 卡牌`
+                    : "尚未提交成绩"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+// 目标卡牌堆组件
+function TargetStack({
+  cards,
+  selectedType,
+  isLocked,
+}: {
+  cards: Card[]
+  selectedType: CardType | null
+  isLocked: boolean
+}) {
+  const { setNodeRef } = useDroppable({
+    id: "target-stack",
+    disabled: isLocked,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex h-32 items-center justify-center rounded-lg border-2 border-dashed transition-colors",
+        selectedType ? "border-green-500/50 bg-green-900/10" : "border-yellow-500/50 bg-yellow-900/10",
+        isLocked && "border-gray-500/50 bg-gray-900/10",
+      )}
+    >
+      {cards.length === 0 ? (
+        <div className="text-center text-gray-400">{isLocked ? "已锁定" : "拖拽卡牌到这里"}</div>
+      ) : (
+        <div className="relative flex h-full items-center">
+          {cards.map((card, index) => (
+            <div
+              key={card.id}
+              className="absolute"
+              style={{
+                left: `${index * 20}px`,
+                zIndex: index,
+              }}
+            >
+              <img
+                src={card.image || "/placeholder.svg"}
+                alt={card.type}
+                className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 p-1 shadow-lg"
+              />
+            </div>
+          ))}
+          <div className="ml-4 pl-[calc(20px*var(--count))]" style={{ "--count": cards.length } as any}>
+            <span className="rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white">{cards.length} 张</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// 卡槽组件
+function CardSlot({
+  slot,
+  isDisabled,
+  selectedType,
+}: {
+  slot: CardSlot
+  isDisabled: boolean
+  selectedType: CardType | null
+}) {
+  // 使卡槽可以接收拖拽
+  const { setNodeRef } = useDroppable({
+    id: slot.id,
+    disabled: isDisabled,
+  })
+
+  return (
+    <div className="flex flex-col items-center space-y-1">
+      <div ref={setNodeRef} className="h-28 w-full rounded-lg bg-yellow-900/20 p-1">
+        <div className="relative h-full w-full">
+          {slot.cards.map((card, index) => (
+            <DraggableCard
+              key={card.id}
+              card={card}
+              index={index}
+              total={slot.cards.length}
+              isDisabled={isDisabled}
+              sameTypeCount={slot.cards.filter((c) => c.type === card.type).length}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 可拖拽卡牌组件
+function DraggableCard({
+  card,
+  index,
+  total,
+  isDisabled,
+  sameTypeCount,
+}: {
+  card: Card
+  index: number
+  total: number
+  isDisabled: boolean
+  sameTypeCount: number
+}) {
+  // 检查是否是最顶层的卡牌
+  const isTopCard = index === total - 1
+
+  // 只有最顶层的卡牌可以拖拽
+  const isDraggableDisabled = isDisabled || !isTopCard
+
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: card.id,
+    disabled: isDraggableDisabled,
+  })
+
+  // 计算卡牌在卡槽中的位置
+  const offset = index * 5 // 每张卡片偏移5px
+
+  // 检查是否有多张相同类型的卡牌
+  const hasMultipleSameType = sameTypeCount > 1
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={cn(
+        "absolute left-0 top-0 transition-transform",
+        isDragging ? "z-50 cursor-grabbing" : isTopCard ? "cursor-grab" : "cursor-default",
+        isDraggableDisabled && "pointer-events-none opacity-50",
+      )}
+      style={{
+        transform: `translateY(${offset}px)`,
+        zIndex: index,
+      }}
+    >
+      <img
+        src={card.image || "/placeholder.svg"}
+        alt={card.type}
+        className={cn(
+          "h-16 w-16 rounded-full border-2 bg-black/40 p-1 shadow-lg transition-all",
+          isDragging ? "border-green-400 scale-110" : "border-white/20",
+          isDraggableDisabled ? "border-gray-500/50" : "",
+        )}
+      />
+      {isTopCard && hasMultipleSameType && (
+        <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
+          {sameTypeCount}
+        </div>
+      )}
+    </div>
+  )
+}
