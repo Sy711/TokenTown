@@ -1,0 +1,56 @@
+"use client";
+import { useDroppable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
+import type { Card, CardType } from "@/types/game-types";
+
+export default function TargetStack({
+  cards,
+  selectedType,
+  isLocked,
+}: {
+  cards: Card[];
+  selectedType: CardType | null;
+  isLocked: boolean;
+}) {
+  const { setNodeRef } = useDroppable({
+    id: "target-stack",
+    disabled: isLocked,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex h-32 items-center justify-center rounded-lg border-2 border-dashed transition-colors",
+        selectedType ? "border-green-500/50 bg-green-900/10" : "border-yellow-500/50 bg-yellow-900/10",
+        isLocked && "border-gray-500/50 bg-gray-900/10",
+      )}
+    >
+      {cards.length === 0 ? (
+        <div className="text-center text-gray-400">{isLocked ? "已锁定" : "拖拽卡牌到这里"}</div>
+      ) : (
+        <div className="relative flex h-full items-center">
+          {cards.map((card, index) => (
+            <div
+              key={card.id}
+              className="absolute"
+              style={{
+                left: `${index * 20}px`,
+                zIndex: index,
+              }}
+            >
+              <img
+                src={card.image || "/placeholder.svg"}
+                alt={card.type}
+                className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 p-1 shadow-lg"
+              />
+            </div>
+          ))}
+          <div className="ml-4 pl-[calc(20px*var(--count))]" style={{ "--count": cards.length } as any}>
+            <span className="rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white">{cards.length} 张</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

@@ -1,51 +1,46 @@
 "use client"
 
-import { useState, useEffect,useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
+import TargetStack from "@/components/game/TargetStack";
+import CardSlot from "@/components/game/CardSlot";
+import TrashBin from "@/components/game/TrashBin";
+import type { CardType, Card, CardSlots } from "@/types/game-types";
 import { motion } from "framer-motion"
-import { DndContext, type DragEndEvent, useDraggable, useDroppable } from "@dnd-kit/core"
-import { Wallet, Loader2, RefreshCw, Send, Trophy, Clock, Info } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { DndContext, type DragEndEvent } from "@dnd-kit/core"
+import { Wallet, Loader2, RefreshCw, Send, Trophy, Clock, Info, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
+import BackgroundIcons from "../components/background-icons"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useCurrentAccount, useSuiClient ,useSuiClientQuery} from '@mysten/dapp-kit';
+import { useCurrentAccount, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit';
 // 定义卡牌类型
-type CardType = "wusdc" | "wbtc" | "wal" | "cetus" | "usdt" | "sui" | "navx" | "deep"
 
 // 卡牌数据结构
-interface Card {
-  id: string
-  type: CardType
-  image: string
-}
 
-// 卡槽数据结构
-interface CardSlot {
-  id: string
-  cards: Card[]
-}
 
 interface Props {
-  accountAddress: string ;
+  accountAddress: string;
 }
 export default function GameBoard({ accountAddress }: Props) {
   const [gameState, setGameState] = useState<"playing" | "submitted" | "finished">("playing")
-  const [cardSlots, setCardSlots] = useState<CardSlot[]>([])
+  const [cardSlots, setCardSlots] = useState<CardSlots[]>([])
   const [targetStack, setTargetStack] = useState<Card[]>([])
   const [selectedCardType, setSelectedCardType] = useState<CardType | null>(null)
   const [drawCount, setDrawCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [showRules, setShowRules] = useState(false)
   const [showRankings, setShowRankings] = useState(false)
-  console.log(accountAddress,"account")
+  const [trashError, setTrashError] = useState<string | null>(null)
+  const [showTrashSuccess, setShowTrashSuccess] = useState(false)
+
+  console.log(accountAddress, "account")
   const client = useSuiClient();
   // 修改后的余额查询代码
-  const { 
-    data: balance, 
-    isLoading: isBalanceLoading, 
-    error: balanceError 
+  const {
+    data: balance,
+    isLoading: isBalanceLoading,
+    error: balanceError
   } = useSuiClientQuery('getBalance', {
     owner: accountAddress,
     coinType: '0x2::sui::SUI',
@@ -53,7 +48,7 @@ export default function GameBoard({ accountAddress }: Props) {
     enabled: !!accountAddress,
     refetchInterval: 3000
   });
-  
+
   // 添加调试信息
   useEffect(() => {
     console.log('当前账户地址:', accountAddress);
@@ -62,14 +57,14 @@ export default function GameBoard({ accountAddress }: Props) {
       console.error('余额查询错误:', balanceError);
     }
   }, [accountAddress, balance, balanceError]);
-  
+
   // 修改后的余额显示逻辑
   const walletBalance = useMemo(() => {
     if (!balance || !balance.totalBalance) {
       return 0;
     }
-    console.log(balance.totalBalance,"balance")
-    console.log(Number(balance?.totalBalance) / 1e9,"balance2")
+    console.log(balance.totalBalance, "balance")
+    console.log(Number(balance?.totalBalance) / 1e9, "balance2")
 
     return Number(balance?.totalBalance) / 1e9;
   }, [balance]);
@@ -94,7 +89,7 @@ export default function GameBoard({ accountAddress }: Props) {
 
   // 初始化空卡槽
   const initializeEmptySlots = () => {
-    const slots: CardSlot[] = []
+    const slots: CardSlots[] = []
     // 创建7个空卡槽
     for (let i = 0; i < 7; i++) {
       slots.push({
@@ -127,6 +122,29 @@ export default function GameBoard({ accountAddress }: Props) {
 
     // 如果不是最顶层卡牌，不允许拖拽
     if (!isTopCard) return
+
+    // 如果目标是垃圾桶
+    if (over.id === "trash-bin") {
+      // 计算当前卡槽中同类型卡牌的数量
+      const sameTypeCardsInSlot = cardSlots[sourceSlotIndex].cards.filter((c) => c.type === card.type)
+      const sameTypeCountInSlot = sameTypeCardsInSlot.length
+
+      // 检查是否满足丢弃条件（当前卡槽中同类型卡牌数量 >= 10）
+      if (sameTypeCountInSlot >= 10) {
+        // 只从当前卡槽中移除该类型的��牌
+        const newCardSlots = [...cardSlots]
+        newCardSlots[sourceSlotIndex].cards = newCardSlots[sourceSlotIndex].cards.filter((c) => c.type !== card.type)
+
+        setCardSlots(newCardSlots)
+        setShowTrashSuccess(true)
+        setTimeout(() => setShowTrashSuccess(false), 2000)
+      } else {
+        // 显示错误信息
+        setTrashError(`需要至少10张相同类型的卡牌才能丢弃（当前卡槽: ${sameTypeCountInSlot}张）`)
+        setTimeout(() => setTrashError(null), 3000)
+      }
+      return
+    }
 
     // 如果目标是目标堆
     if (over.id === "target-stack") {
@@ -216,7 +234,7 @@ export default function GameBoard({ accountAddress }: Props) {
         setIsLoading(false);
         return;
       }
-   //调用合约
+      //调用合约
     }
     // 模拟抽卡逻辑
     setTimeout(() => {
@@ -230,7 +248,7 @@ export default function GameBoard({ accountAddress }: Props) {
         setIsLoading(false); // 确保始终重置加载状态
       }
     }, 1000);
-  
+
   }
   // 分配新卡牌到卡槽
   const distributeNewCards = () => {
@@ -278,6 +296,9 @@ export default function GameBoard({ accountAddress }: Props) {
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-4">
+      <div className="absolute inset-0 z-[-1]">
+        <BackgroundIcons />
+      </div>
       {/* 顶部状态栏 */}
       <div className="mb-4 flex items-center justify-between rounded-lg bg-black/30 p-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -305,22 +326,33 @@ export default function GameBoard({ accountAddress }: Props) {
       {/* 游戏界面 */}
       {gameState === "playing" && (
         <DndContext onDragEnd={handleDragEnd}>
-          <div className="mx-auto max-w-4xl pb-24">
-            {/* 目标卡牌堆 */}
-            <div className="relative mb-8">
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-300">目标卡牌堆</h3>
-                <span className="text-xs text-gray-400">
-                  {selectedCardType
-                    ? `已选择 ${selectedCardType.toUpperCase()} 类型卡牌`
-                    : "请选择一种卡牌类型作为目标"}
-                </span>
+          <div className="mx-auto max-w-4xl space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 目标卡牌堆 */}
+              <div className="relative">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-300">目标卡牌堆</h3>
+                  <span className="text-xs text-gray-400">
+                    {selectedCardType
+                      ? `已选择 ${selectedCardType.toUpperCase()} 类型卡牌`
+                      : "请选择一种卡牌类型作为目标"}
+                  </span>
+                </div>
+                <TargetStack cards={targetStack} selectedType={selectedCardType} isLocked={false} />
               </div>
-              <TargetStack cards={targetStack} selectedType={selectedCardType} isLocked={gameState === "submitted"} />
+
+              {/* 垃圾桶 */}
+              <div className="relative">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-gray-300">垃圾桶</h3>
+                  <span className="text-xs text-gray-400">需要至少10张相同类型卡牌才能丢弃</span>
+                </div>
+                <TrashBin error={trashError} success={showTrashSuccess} />
+              </div>
             </div>
 
             {/* 卡牌区域 */}
-            <div className="mb-12 space-y-2">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-gray-300">卡牌区域</h3>
                 <TooltipProvider>
@@ -349,24 +381,34 @@ export default function GameBoard({ accountAddress }: Props) {
               </div>
             </div>
 
-            
+            {/* 操作按钮 */}
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={handleSubmit}
+                disabled={targetStack.length === 0 || isLoading}
+                className="flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-3 font-medium text-white shadow-lg transition-all hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600"
+              >
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                提交成绩
+              </button>
             </div>
-          </DndContext>
-        )}
-
-        {/* 新增固定定位按钮容器 */}
-        {gameState === "playing" && (
-          <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform">
-            <button
-              onClick={handleSubmit}
-              disabled={targetStack.length === 0 || isLoading}
-              className="flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-3 font-medium text-white shadow-lg transition-all hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600"
-            >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              提交成绩
-            </button>
           </div>
-        )}
+        </DndContext>
+      )}
+
+      {/* 新增固定定位按钮容器 */}
+      {gameState === "playing" && (
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform">
+          <button
+            onClick={handleSubmit}
+            disabled={targetStack.length === 0 || isLoading}
+            className="flex items-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-3 font-medium text-white shadow-lg transition-all hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600"
+          >
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+            提交成绩
+          </button>
+        </div>
+      )}
 
       {/* 提交成功界面 */}
       {gameState === "submitted" && (
@@ -386,8 +428,8 @@ export default function GameBoard({ accountAddress }: Props) {
               <p className="text-sm text-gray-300">
                 当前排名: <span className="font-bold text-white">3</span>
               </p>
-              
-              
+
+
             </div>
 
             <div className="flex justify-center gap-4">
@@ -436,7 +478,7 @@ export default function GameBoard({ accountAddress }: Props) {
           <DialogHeader>
             <DialogTitle className="text-xl">今日排行榜</DialogTitle>
             <DialogDescription className="text-gray-300">
-              当前金库总额: 25.6 SUI 
+              当前金库总额: 25.6 SUI
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -471,159 +513,6 @@ export default function GameBoard({ accountAddress }: Props) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  )
-}
-
-// 目标卡牌堆组件
-function TargetStack({
-  cards,
-  selectedType,
-  isLocked,
-}: {
-  cards: Card[]
-  selectedType: CardType | null
-  isLocked: boolean
-}) {
-  const { setNodeRef } = useDroppable({
-    id: "target-stack",
-    disabled: isLocked,
-  })
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={cn(
-        "flex h-32 items-center justify-center rounded-lg border-2 border-dashed transition-colors",
-        selectedType ? "border-green-500/50 bg-green-900/10" : "border-yellow-500/50 bg-yellow-900/10",
-        isLocked && "border-gray-500/50 bg-gray-900/10",
-      )}
-    >
-      {cards.length === 0 ? (
-        <div className="text-center text-gray-400">{isLocked ? "已锁定" : "拖拽卡牌到这里"}</div>
-      ) : (
-        <div className="relative flex h-full items-center">
-          {cards.map((card, index) => (
-            <div
-              key={card.id}
-              className="absolute"
-              style={{
-                left: `${index * 20}px`,
-                zIndex: index,
-              }}
-            >
-              <img
-                src={card.image || "/placeholder.svg"}
-                alt={card.type}
-                className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 p-1 shadow-lg"
-              />
-            </div>
-          ))}
-          <div className="ml-4 pl-[calc(20px*var(--count))]" style={{ "--count": cards.length } as any}>
-            <span className="rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white">{cards.length} 张</span>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// 卡槽组件
-function CardSlot({
-  slot,
-  isDisabled,
-  selectedType,
-}: {
-  slot: CardSlot
-  isDisabled: boolean
-  selectedType: CardType | null
-}) {
-  // 使卡槽可以接收拖拽
-  const { setNodeRef } = useDroppable({
-    id: slot.id,
-    disabled: isDisabled,
-  })
-
-  return (
-    <div className="flex flex-col items-center space-y-1">
-      <div ref={setNodeRef} className="h-28 w-full rounded-lg bg-yellow-900/20 p-1">
-        <div className="relative h-full w-full">
-          {slot.cards.map((card, index) => (
-            <DraggableCard
-              key={card.id}
-              card={card}
-              index={index}
-              total={slot.cards.length}
-              isDisabled={isDisabled}
-              sameTypeCount={slot.cards.filter((c) => c.type === card.type).length}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// 可拖拽卡牌组件
-function DraggableCard({
-  card,
-  index,
-  total,
-  isDisabled,
-  sameTypeCount,
-}: {
-  card: Card
-  index: number
-  total: number
-  isDisabled: boolean
-  sameTypeCount: number
-}) {
-  // 检查是否是最顶层的卡牌
-  const isTopCard = index === total - 1
-
-  // 只有最顶层的卡牌可以拖拽
-  const isDraggableDisabled = isDisabled || !isTopCard
-
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: card.id,
-    disabled: isDraggableDisabled,
-  })
-
-  // 计算卡牌在卡槽中的位置
-  const offset = index * 5 // 每张卡片偏移5px
-
-  // 检查是否有多张相同类型的卡牌
-  const hasMultipleSameType = sameTypeCount > 1
-
-  return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      className={cn(
-        "absolute left-0 top-0 transition-transform",
-        isDragging ? "z-50 cursor-grabbing" : isTopCard ? "cursor-grab" : "cursor-default",
-        isDraggableDisabled && "pointer-events-none opacity-50",
-      )}
-      style={{
-        transform: `translateY(${offset}px)`,
-        zIndex: index,
-      }}
-    >
-      <img
-        src={card.image || "/placeholder.svg"}
-        alt={card.type}
-        className={cn(
-          "h-16 w-16 rounded-full border-2 bg-black/40 p-1 shadow-lg transition-all",
-          isDragging ? "border-green-400 scale-110" : "border-white/20",
-          isDraggableDisabled ? "border-gray-500/50" : "",
-        )}
-      />
-      {isTopCard && hasMultipleSameType && (
-        <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
-          {sameTypeCount}
-        </div>
-      )}
     </div>
   )
 }

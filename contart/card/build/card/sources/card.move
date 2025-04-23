@@ -28,7 +28,9 @@ public struct DailyLeaderboardEvent has copy, drop {
     player: address,
     card_count: u64,
 }
-
+public struct FirstEvent has copy, drop {
+     player: address,
+}
 public struct PaymentEvent has copy, drop {
     amount: u64,
 }
@@ -49,7 +51,7 @@ public fun payment(
     amount: &mut Coin<SUI>,
     vault: &mut Vault,
     ctx: &mut TxContext,
-) {
+):u64 {
      assert!(amount.balance().value()>= ENTRY_FEE, ECoinBalanceNotEnough);
 
     let sender = tx_context::sender(ctx);
@@ -64,7 +66,7 @@ public fun payment(
     vault.prize_pool.join(split_balance);
     vector::push_back(&mut vault.paid_players, sender);
     event::emit(PaymentEvent { amount: vault.prize_pool.value() });
-    
+    vault.prize_pool.value()
 }
 
 //普通提交
@@ -79,9 +81,7 @@ public fun submit(
     assert!(!vault.leaderboard.contains(&sender), EPlayerAlreadySubmitted);
     if (vault.first_player == @0x0 && vector::contains(&vault.paid_players, &sender)) {
         vault.first_player = sender;
-                 print( &6666);
-print( & vault.first_player);
-
+        event::emit(FirstEvent { player: sender });
     };
     vault.leaderboard.insert(sender, card_count);
  print( &7777);
@@ -97,25 +97,26 @@ public fun incentive_submit(
     card_count: u64,
     vault: &mut Vault,
     ctx: &mut TxContext,
-) {
+) : (address, u64, address, u64, address, u64){
     assert!(vault.prize_pool.value() >= ENTRY_FEE, ECoinBalanceNotEnough);
     assert!(card_count > 0, ECountNotEnough);
     let sender = tx_context::sender(ctx);
     let value = value(vault);
-    let frist_amount = coin::take(&mut vault.prize_pool, (value*2)/6, ctx);
+    let first_value=(value*2)/6;
+    let frist_amount = coin::take(&mut vault.prize_pool, first_value, ctx);
          print( &1111);
 
     print(&frist_amount);
     transfer::public_transfer(frist_amount, vault.first_player);
-    let end_amount = coin::take(&mut vault.prize_pool, (value*1)/6, ctx);
+    let end_value = (value*1)/6;
+    let end_amount = coin::take(&mut vault.prize_pool, end_value, ctx);
          print( &2222);
 
     print(&end_amount);
     let own=get_max_card_user(vault);
+    let own_value= value(vault);
     let own_amount = coin::from_balance(balance::withdraw_all(&mut vault.prize_pool), ctx);
-       print( &3333);
 
-   print(&own_amount);
     transfer::public_transfer(own_amount, own);
     transfer::public_transfer(end_amount, sender);
     vault.first_player = @0x0;
@@ -125,7 +126,8 @@ public fun incentive_submit(
     while (!vector::is_empty(&vault.paid_players)) {
         vector::pop_back(&mut vault.paid_players);
     };
-
+    // ✅ 直接返回本次结算的 3 个玩家和奖励数值
+    (sender, end_value, own, own_value, vault.first_player, first_value)
 }
 //获取最大卡数用户
 public fun get_max_card_user(vault: &mut Vault): address {

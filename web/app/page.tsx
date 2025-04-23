@@ -7,6 +7,7 @@ import { ConnectButton } from '@mysten/dapp-kit'
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Trophy, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import BackgroundIcons from "../components/background-icons"
 
 export default function HomeScreen() {
   const account = useCurrentAccount();
@@ -126,50 +127,3 @@ export default function HomeScreen() {
   )
 }
 
-function BackgroundIcons() {
-  const icons = [
-    { src: "/wusdc.svg", width: 60, height: 60, className: "animate-float-slow" },
-    { src: "/fdusd.svg", width: 60, height: 60, className: "animate-float-fast" }, // 新增FDUSD
-    { src: "/wbtc.svg", width: 70, height: 70, className: "animate-float-medium" },
-    { src: "/wal.png", width: 55, height: 55, className: "animate-float-fast" },
-    { src: "/cetus.png", width: 50, height: 50, className: "animate-float-slow" },
-    { src: "/usdt.svg", width: 65, height: 65, className: "animate-float-medium" },
-    { src: "/sui.svg", width: 58, height: 58, className: "animate-float-fast" },
-    { src: "/blue.png", width: 65, height: 65, className: "animate-float-medium" }, // 新增BLUE
-    { src: "/navx.svg", width: 62, height: 62, className: "animate-float-slow" },
-    { src: "/ns.svg", width: 55, height: 55, className: "animate-float-slow" }, // 新增NS
-    { src: "/deep.svg", width: 56, height: 56, className: "animate-float-medium" },
-  ]
-
-  // 创建多个图标实例以填充背景
-  const iconInstances = []
-  for (let i = 0; i < 24; i++) {
-    const icon = icons[i % icons.length]
-    const left = `${Math.random() * 100}%`
-    const top = `${Math.random() * 100}%`
-    const delay = `${Math.random() * 5}s`
-    const opacity = 0.1 + Math.random() * 0.15 // 低透明度
-
-    iconInstances.push(
-      <motion.img
-        key={i}
-        src={icon.src}
-        width={icon.width}
-        height={icon.height}
-        alt=""
-        className={`absolute ${icon.className}`}
-        style={{
-          left,
-          top,
-          opacity,
-          animationDelay: delay,
-        }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity, scale: 1 }}
-        transition={{ duration: 1, delay: i * 0.1 }}
-      />,
-    )
-  }
-
-  return <>{iconInstances}</>
-}
