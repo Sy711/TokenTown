@@ -3,11 +3,39 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useCurrentAccount } from '@mysten/dapp-kit';
 import { ArrowLeft, Wallet, Users, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
-
+import {vaultBalance,getTodayLeaderboard,getTodayFirstSubmitter}from "@/contracts/query";
+import {DailyLeaderboardEvent} from "@/types/game-types";
 export default function RankingsPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const [vaultAmount, setVaultAmount] = useState<number>(0)
+const [rankings, setRankings] = useState<DailyLeaderboardEvent[]>([])
+const account = useCurrentAccount();
+const [firstPlayer, setFirstPlayer] = useState<string>("");
+// 删除 isConnected 状态
+  vaultBalance({}).then((value) => {
+    setVaultAmount(value?? 0);
+  });
+  useEffect(() => {
+    try{
+    getTodayLeaderboard().then((event) => {
+      setRankings(event);
+    });
+    vaultBalance({}).then((value) => {
+      setVaultAmount(value ?? 0);
+    });
+    getTodayFirstSubmitter().then((value) => {
+      setFirstPlayer(value?? "");
+    });
+  }catch(e){
+      console.error("Error fetching vault data:", e);
+      console.log(e);
+    }
+  })
+  // 删除 isConnected 状态
+
 
   // 排行榜数据
   const todayRankings = [
@@ -25,6 +53,8 @@ export default function RankingsPage() {
     // 模拟加载数据
     setTimeout(() => {
       setIsLoading(false)
+      rankings
+      vaultAmount
     }, 1000)
   }, [])
 
@@ -50,7 +80,7 @@ export default function RankingsPage() {
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-white">TokenTown 排行榜</h1>
-          <p className="mt-1 text-gray-300">当前金库总额: 25.6 SUI</p>
+          <p className="mt-1 text-gray-300">当前金库总额:{vaultAmount} SUI</p>
         </div>
 
         <Card className="w-full bg-black/20 p-4 mt-4">
@@ -68,9 +98,6 @@ export default function RankingsPage() {
                     <Info size={16} className="text-blue-400" />
                     <span className="text-sm text-gray-300">仅限前20名玩家参与游戏</span>
                   </div>
-                  <div className="text-sm text-gray-300">
-                    您的排名: <span className="font-medium text-white">3</span>
-                  </div>
                 </div>
               </div>
 
@@ -79,25 +106,23 @@ export default function RankingsPage() {
                   <div className="col-span-1">排名</div>
                   <div className="col-span-4">玩家</div>
                   <div className="col-span-3">卡牌数</div>
-                  <div className="col-span-4">预计奖励</div>
                 </div>
                 <div className="space-y-2">
-                  {todayRankings.map((item) => (
+                  {rankings.map((item: DailyLeaderboardEvent, idx: number) => (
                     <div
-                      key={item.rank}
+                      key={item.player + '-' + idx}
                       className={`grid grid-cols-12 items-center rounded py-2 text-sm ${
-                        item.rank === 3 ? "bg-blue-900/30" : ""
+                        account && item.player === account.address ? "bg-blue-900/30" : ""
                       }`}
                     >
-                      <div className="col-span-1 font-bold text-white">{item.rank}</div>
+                      <div className="col-span-1 font-bold text-white">{idx + 1}</div>
                       <div className="col-span-4 flex items-center gap-1 text-white">
                         {item.player}
-                        {item.isLastSubmitter && (
-                          <span className="rounded bg-purple-500/30 px-1 py-0.5 text-xs text-purple-300">最后提交</span>
+                        {firstPlayer && item.player === firstPlayer && (
+                          <span className="rounded bg-purple-500/30 px-1 py-0.5 text-xs text-purple-300">首位提交</span>
                         )}
                       </div>
-                      <div className="col-span-3 text-white">{item.cards}张</div>
-                      <div className="col-span-4 font-medium text-green-400">{item.reward}</div>
+                      <div className="col-span-3 text-white">{item.cardCount}张</div>
                     </div>
                   ))}
                 </div>

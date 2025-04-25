@@ -9,15 +9,6 @@ function getNetworkVariables(network: Network) {
     return networkConfig[network].variables;
 }
 
-function createBetterTxFactory<T extends Record<string, unknown>>(
-    fn: (tx: Transaction, networkVariables: NetworkVariables, params: T) => Transaction
-) {
-    return (params: T) => {
-        const tx = new Transaction();
-        const networkVariables = getNetworkVariables(network);
-        return fn(tx, networkVariables, params);
-    };
-}
 
 type Network = "mainnet" | "testnet"
 
@@ -33,6 +24,15 @@ const { networkConfig, useNetworkVariables } = createNetworkConfig({
         variables: getContractConfig("mainnet"),
     }
 });
+function createBetterTxFactory<T extends Record<string, unknown>>(
+  fn: (tx: Transaction, networkVariables: NetworkVariables, params: T) => Transaction
+) {
+  return (params: T) => {
+      const tx = new Transaction();
+      const networkVariables = getNetworkVariables(network);
+      return fn(tx, networkVariables, params);
+  };
+}
 
 
 function createBetterDevInspect<T extends Record<string, unknown>, R>(

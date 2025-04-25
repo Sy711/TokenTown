@@ -2,6 +2,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import DraggableCard from "./DraggableCard";
 import type { CardSlots, CardType } from "@/types/game-types";
+import { cn } from "@/lib/utils";
 
 export default function CardSlot({
   slot,
@@ -13,14 +14,31 @@ export default function CardSlot({
   selectedType: CardType | null;
 }) {
     // 使卡槽可以接收拖拽
-    const { setNodeRef } = useDroppable({
+    const { setNodeRef, isOver } = useDroppable({
       id: slot.id,
       disabled: isDisabled,
     })
   
+    // 获取卡槽中顶部卡牌的类型（如果有卡牌）
+    const topCardType = slot.cards.length > 0 
+      ? slot.cards[slot.cards.length - 1].type 
+      : null;
+    
+    // 检查是否可以接收当前选中类型的卡牌
+    const canAcceptSelectedType = selectedType === null || 
+      topCardType === null || 
+      topCardType === selectedType;
+  
     return (
       <div className="flex flex-col items-center space-y-1">
-        <div ref={setNodeRef} className="h-28 w-full rounded-lg bg-yellow-900/20 p-1">
+        <div 
+          ref={setNodeRef} 
+          className={cn(
+            "h-28 w-full rounded-lg p-1 transition-colors",
+            isOver && canAcceptSelectedType ? "bg-green-900/30 border-2 border-green-500/50" : "bg-yellow-900/20",
+            isDisabled && "opacity-70"
+          )}
+        >
           <div className="relative h-full w-full">
             {slot.cards.map((card, index) => (
               <DraggableCard

@@ -12,23 +12,16 @@ export interface CardSlots {
 }
 export type DailyLeaderboardEvent = {
   player: string;
-  card_count: bigint;
+  cardCount: bigint;
 };
 
-export type typequeryEndEvents ={
-  end_player: string;
-    end_amount: bigint;
-    own_player: string;
-    own_amount: bigint;
-    frist_player: string;
-    first_amount: bigint;
-}
+
 export interface IncentiveSubmitPreviewResult {
   endPlayer: string;
-  endAmount: number;
+  endAmount: bigint;
   ownPlayer: string;
-  ownAmount: number;
+  ownAmount: bigint;
   firstPlayer: string;
-  firstAmount: number;
+  firstAmount: bigint;
  
 }

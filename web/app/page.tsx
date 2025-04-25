@@ -8,13 +8,18 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Trophy, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import BackgroundIcons from "../components/background-icons"
+import {vaultBalance}from "@/contracts/query";
 
 export default function HomeScreen() {
   const account = useCurrentAccount();
   const [showConnectPrompt, setShowConnectPrompt] = useState(false)
   const [showRules, setShowRules] = useState(false)
-  // 删除 isConnected 状态
+  const [vaultAmount, setVaultAmount] = useState<number>(0)
 
+  // 删除 isConnected 状态
+  vaultBalance({}).then((value) => {
+    setVaultAmount(value ?? 0);
+  });
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
       {/* 背景图标 */}
@@ -52,7 +57,7 @@ export default function HomeScreen() {
           <div className="mt-3 flex items-center justify-center gap-2">
             <div className="flex items-center gap-1 rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-300">
               <Trophy size={14} />
-              <span>今日奖池: 25.6 SUI</span>
+              <span>今日奖池: {vaultAmount} SUI</span>
             </div>
 
           </div>
