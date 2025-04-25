@@ -35,26 +35,26 @@ function createBetterTxFactory<T extends Record<string, unknown>>(
 }
 
 
-function createBetterDevInspect<T extends Record<string, unknown>, R>(
-    fn: (tx: Transaction, networkVariables: ReturnType<typeof getNetworkVariables>, params: T) => Transaction,
-    parseResult: (res: DevInspectResults) => R | null
-  ) {
-    return async (params: T): Promise<R | null> => {
-      const tx = new Transaction();
-      const networkVariables = getNetworkVariables(network);
-      const populatedTx = fn(tx, networkVariables, params);
+// function createBetterDevInspect<T extends Record<string, unknown>, R>(
+//     fn: (tx: Transaction, networkVariables: ReturnType<typeof getNetworkVariables>, params: T) => Transaction,
+//     parseResult: (res: DevInspectResults) => R | null
+//   ) {
+//     return async (params: T): Promise<R | null> => {
+//       const tx = new Transaction();
+//       const networkVariables = getNetworkVariables(network);
+//       const populatedTx = fn(tx, networkVariables, params);
   
-      const res = await suiClient.devInspectTransactionBlock({
-        transactionBlock: populatedTx,
-        sender: '0x0',
-      });
+//       const res = await suiClient.devInspectTransactionBlock({
+//         transactionBlock: populatedTx,
+//         sender: '0x0',
+//       });
   
-      return parseResult(res);
-    };
-  }
+//       return parseResult(res);
+//     };
+//   }
 // 创建全局 SuiClient 实例
 const suiClient = new SuiClient({ url: networkConfig[network].url });
 
-export { getNetworkVariables, networkConfig, network, suiClient, createBetterTxFactory, createBetterDevInspect,useNetworkVariables };
+export { getNetworkVariables, networkConfig, network, suiClient, createBetterTxFactory,useNetworkVariables };
 export type { NetworkVariables };
 

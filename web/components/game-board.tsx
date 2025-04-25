@@ -15,7 +15,7 @@ import BackgroundIcons from "../components/background-icons"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useCurrentAccount, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit';
 import {useBetterSignAndExecuteTransaction} from "@/hooks/useBetterTx";
-import {previewPaymentTx,previewIncentiveSubmitTx,vaultBalance}from "@/contracts/query";
+import {previewPaymentTx,previewIncentiveSubmitTx}from "@/contracts/query";
 import {DailyLeaderboardEvent,IncentiveSubmitPreviewResult} from "@/types/game-types";
 
 // 定义卡牌类型
@@ -106,17 +106,12 @@ export default function GameBoard({ accountAddress }: Props) {
     console.log("Drag Start - Active ID:", event.active.id);
   }
 
+ 
   // 处理卡牌拖拽结束
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    // ！！！注意：将 console.log 移到函数最开始，确保没有被前面的 return 语句阻止
-    console.log("Drag End - Over ID:", over?.id, "Active ID:", active.id);
-
-    if (!over) {
-      console.log("Drag End - No droppable target (over is null)");
-      return
-    }
+    if (!over) return
 
     const cardId = active.id as string
     const [sourceSlotId, cardIndex] = getCardLocation(cardId)
@@ -143,7 +138,7 @@ export default function GameBoard({ accountAddress }: Props) {
 
       // 检查是否满足丢弃条件（当前卡槽中同类型卡牌数量 >= 10）
       if (sameTypeCountInSlot >= 10) {
-        // 只从当前卡槽中移除该类型的��牌
+        // 只从当前卡槽中移除该类型的卡牌
         const newCardSlots = [...cardSlots]
         newCardSlots[sourceSlotIndex].cards = newCardSlots[sourceSlotIndex].cards.filter((c) => c.type !== card.type)
 
@@ -191,7 +186,6 @@ export default function GameBoard({ accountAddress }: Props) {
     }
   }
 
-  // 将顶部连续的相同类型卡牌移动到目标位置
   const moveAllSameTypeCards = (
     sourceSlotIndex: number,
     cardType: CardType,
@@ -200,54 +194,24 @@ export default function GameBoard({ accountAddress }: Props) {
   ) => {
     const newCardSlots = [...cardSlots]
     const sourceSlot = newCardSlots[sourceSlotIndex]
-    const sourceCards = sourceSlot.cards
 
-    // 找出顶部连续相同类型的卡牌
-    let splitIndex = sourceCards.length - 1; // 从最顶部卡牌开始
-    while (splitIndex >= 0 && sourceCards[splitIndex].type === cardType) {
-      splitIndex--; // 向下查找直到找到不同类型的卡牌
-    }
-    splitIndex++; // 调整到第一张匹配类型的卡牌位置
-    
-    // 提取需要移动的卡牌 (从 splitIndex 到末尾)
-    const cardsToMove = sourceCards.slice(splitIndex);
-    
-    // 添加调试信息
-    console.log(`移动卡牌: 从索引 ${splitIndex} 到末尾，共 ${cardsToMove.length} 张卡牌`);
-    console.log('要移动的卡牌:', cardsToMove);
+    // 找出所有相同类型的卡牌
+    const sameTypeCards = sourceSlot.cards.filter((card) => card.type === cardType)
 
-    // 如果没有找到可移动的卡牌（例如，源卡槽为空或顶部卡牌类型不匹配 - 后者理论上不应发生）
-    if (cardsToMove.length === 0) {
-        console.warn("moveAllSameTypeCards: No cards to move found at the top.");
-        return; // 无需移动
-    }
+    // 从源卡槽中移除这些卡牌
+    newCardSlots[sourceSlotIndex].cards = sourceSlot.cards.filter((card) => card.type !== cardType)
 
-    // 从源卡槽中移除这些卡牌 (保留从 0 到 splitIndex 之前的卡牌)
-    newCardSlots[sourceSlotIndex].cards = sourceCards.slice(0, splitIndex);
-
-    // 将移动的卡牌添加到目标位置
     if (targetType === "target") {
-      // 添加到目标堆 - 使用函数式更新
-      setTargetStack(prevStack => {
-        const newStack = [...prevStack, ...cardsToMove];
-        console.log('新的目标堆 (函数式更新):', newStack);
-        return newStack;
-      });
+      // 添加到目标堆
+      setTargetStack((prev) => [...prev, ...sameTypeCards])
     } else if (targetType === "slot" && targetSlotIndex !== undefined) {
-      // 添加到目标卡槽 - 使用最新状态
-      setCardSlots(prevSlots => {
-        const newSlots = [...prevSlots];
-        newSlots[targetSlotIndex].cards = [...newSlots[targetSlotIndex].cards, ...cardsToMove];
-        newSlots[sourceSlotIndex].cards = sourceCards.slice(0, splitIndex);
-        return newSlots;
-      });
-      return; // 提前返回，避免下面的 setCardSlots 被执行
+      // 添加到目标卡槽
+      newCardSlots[targetSlotIndex].cards = [...newCardSlots[targetSlotIndex].cards, ...sameTypeCards]
     }
 
-    // 更新卡槽状态
-    setCardSlots(newCardSlots);
+    // 更新卡槽
+    setCardSlots(newCardSlots)
   }
-
   // 获取卡牌所在的卡槽和索引
   const getCardLocation = (cardId: string): [string | null, number] => {
     for (const slot of cardSlots) {
@@ -278,9 +242,9 @@ export default function GameBoard({ accountAddress }: Props) {
       previewPayment({wallet:null})
         .onSuccess(async (result) => {
           console.log("付款成功", result);
-          vaultBalance({}).then((value) => {
-            setVaultAmount(value ?? 0);
-          });
+          // vaultBalance({}).then((value) => {
+          //   setVaultAmount(value ?? 0);
+          // });
           // 付款成功后继续抽卡流程
           distributeNewCards();
           setDrawCount(prev => prev + 1);

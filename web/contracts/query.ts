@@ -1,5 +1,5 @@
 import { isValidSuiAddress } from "@mysten/sui/utils";
-import { suiClient ,networkConfig,createBetterTxFactory,createBetterDevInspect} from "./index";
+import { suiClient ,networkConfig,createBetterTxFactory} from "./index";
 import { SuiObjectResponse } from "@mysten/sui/client";
 import { categorizeSuiObjects, CategorizedObjects } from "@/utils/assetsHelpers";
 import {DailyLeaderboardEvent,IncentiveSubmitPreviewResult} from "@/types/game-types";
@@ -71,7 +71,7 @@ export const getTodayLeaderboard = async (): Promise<DailyLeaderboardEvent[]> =>
   }
 
   // 可排序
-  return todayEvents.sort((a, b) => Number(BigInt(b.cardCount) - BigInt(a.cardCount)));
+  return todayEvents.sort((a, b) => Number(BigInt(b.card_count) - BigInt(a.card_count)));
 };
 
 export const getTodayFirstSubmitter = async (): Promise<string | null> => {
@@ -91,6 +91,7 @@ export const getTodayFirstSubmitter = async (): Promise<string | null> => {
   const parsed = latest.parsedJson as { player: string };
   return parsed.player;
 };
+
 
 export const getLatestIncentiveSubmitEvent = async (): Promise<IncentiveSubmitPreviewResult | null> => {
   const eventType = `${networkConfig.testnet.variables.Package}::card::IncentiveSubmitEvent`;
@@ -147,29 +148,29 @@ export const previewPaymentTx = createBetterTxFactory<
  
 );
 
-export const vaultBalance =createBetterDevInspect<
-{},
-number | null // 明确返回类型可能为 null
->(
-  (tx, networkVariables) => {
-    tx.moveCall({
-      package: networkVariables.Package,
-      module: "card",
-      function: "value",
-      arguments: [
-        tx.object(networkVariables.Vault),
-      ],
-    });
-    return tx;
-  },
-   (res: DevInspectResults) => {
-    const value = res?.results?.[0]?.returnValues?.[0]?.[0];
-    if (!value) return null;
+// export const vaultBalance =createBetterDevInspect<
+// {},
+// number | null // 明确返回类型可能为 null
+// >(
+//   (tx, networkVariables) => {
+//     tx.moveCall({
+//       package: networkVariables.Package,
+//       module: "card",
+//       function: "value",
+//       arguments: [
+//         tx.object(networkVariables.Vault),
+//       ],
+//     });
+//     return tx;
+//   },
+//    (res: DevInspectResults) => {
+//     const value = res?.results?.[0]?.returnValues?.[0]?.[0];
+//     if (!value) return null;
 
-    const parsed = bcs.U64.parse(new Uint8Array(value));
-    return Number(parsed);
-  }
-)
+//     const parsed = bcs.U64.parse(new Uint8Array(value));
+//     return Number(parsed);
+//   }
+// )
 
 
 // 激励结算交易构建器 

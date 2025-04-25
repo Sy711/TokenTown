@@ -21,9 +21,12 @@ export default function DraggableCard({
     // 只有最顶层的卡牌可以拖拽
     const isDraggableDisabled = isDisabled || !isTopCard
   
+    console.log(`Card ${card.id}: isTop=${isTopCard}, isDisabledProp=${isDisabled}, finalDisabled=${isDraggableDisabled}`); // <--- 添加日志检查状态
+  
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
       id: card.id,
-      disabled: isDraggableDisabled,
+      disabled: isDraggableDisabled, // <--- 确认这个值是否为 false
+      // disabled: false, // <--- 或者临时强制改为 false 测试
     })
   
     // 计算卡牌在卡槽中的位置

@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react"
 
 
-export default function TargetStack({ error, success }: { error: string | null; success: boolean }) {
+export default function TrashBin({ error, success }: { error: string | null; success: boolean }) { // <-- 注意：组件名建议改为 TrashBin
   const { setNodeRef } = useDroppable({
-    id: "target-stack",
+    // 修正：将 id 从 "target-stack" 改为 "trash-bin"
+    id: "trash-bin",
   });
 
   return (

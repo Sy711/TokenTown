@@ -12,7 +12,7 @@ export interface CardSlots {
 }
 export type DailyLeaderboardEvent = {
   player: string;
-  cardCount: bigint;
+  card_count: string; // 改为与合约一致的字段名
 };
 
 

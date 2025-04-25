@@ -6,8 +6,10 @@ import Link from "next/link"
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { ArrowLeft, Wallet, Users, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import {vaultBalance,getTodayLeaderboard,getTodayFirstSubmitter}from "@/contracts/query";
+import {getTodayLeaderboard,getTodayFirstSubmitter}from "@/contracts/query";
 import {DailyLeaderboardEvent} from "@/types/game-types";
+import { formatAddress } from '@mysten/sui/utils';
+
 export default function RankingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [vaultAmount, setVaultAmount] = useState<number>(0)
@@ -15,17 +17,18 @@ const [rankings, setRankings] = useState<DailyLeaderboardEvent[]>([])
 const account = useCurrentAccount();
 const [firstPlayer, setFirstPlayer] = useState<string>("");
 // 删除 isConnected 状态
-  vaultBalance({}).then((value) => {
-    setVaultAmount(value?? 0);
-  });
+  // vaultBalance({}).then((value) => {
+  //   setVaultAmount(value?? 0);
+  // });
   useEffect(() => {
     try{
     getTodayLeaderboard().then((event) => {
       setRankings(event);
     });
-    vaultBalance({}).then((value) => {
-      setVaultAmount(value ?? 0);
-    });
+console.log(rankings)
+    // vaultBalance({}).then((value) => {
+    //   setVaultAmount(value ?? 0);
+    // });
     getTodayFirstSubmitter().then((value) => {
       setFirstPlayer(value?? "");
     });
@@ -117,12 +120,12 @@ const [firstPlayer, setFirstPlayer] = useState<string>("");
                     >
                       <div className="col-span-1 font-bold text-white">{idx + 1}</div>
                       <div className="col-span-4 flex items-center gap-1 text-white">
-                        {item.player}
-                        {firstPlayer && item.player === firstPlayer && (
+                      {formatAddress(item.player)}
+                      {firstPlayer && item.player === firstPlayer && (
                           <span className="rounded bg-purple-500/30 px-1 py-0.5 text-xs text-purple-300">首位提交</span>
                         )}
                       </div>
-                      <div className="col-span-3 text-white">{item.cardCount}张</div>
+                      <div className="col-span-3 text-white">{item.card_count}张</div>
                     </div>
                   ))}
                 </div>
