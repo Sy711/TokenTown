@@ -8,7 +8,7 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Trophy, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import BackgroundIcons from "../components/background-icons"
-// import {vaultBalance}from "@/contracts/query";
+import {getPaymentEvents}from "@/contracts/query";
 
 export default function HomeScreen() {
   const account = useCurrentAccount();
@@ -17,9 +17,9 @@ export default function HomeScreen() {
   const [vaultAmount, setVaultAmount] = useState<number>(0)
 
   // 删除 isConnected 状态
-  // vaultBalance({}).then((value) => {
-  //   setVaultAmount(value ?? 0);
-  // });
+  getPaymentEvents().then((value) => {
+    setVaultAmount(value?? 0);
+  });
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
       {/* 背景图标 */}

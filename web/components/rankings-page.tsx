@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { ArrowLeft, Wallet, Users, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import {getTodayLeaderboard,getTodayFirstSubmitter}from "@/contracts/query";
+import {getTodayLeaderboard,getTodayFirstSubmitter,getPaymentEvents}from "@/contracts/query";
 import {DailyLeaderboardEvent} from "@/types/game-types";
 import { formatAddress } from '@mysten/sui/utils';
 
@@ -17,18 +17,19 @@ const [rankings, setRankings] = useState<DailyLeaderboardEvent[]>([])
 const account = useCurrentAccount();
 const [firstPlayer, setFirstPlayer] = useState<string>("");
 // 删除 isConnected 状态
-  // vaultBalance({}).then((value) => {
-  //   setVaultAmount(value?? 0);
-  // });
+getPaymentEvents().then((value) => {
+  setVaultAmount(value?? 0);
+});
   useEffect(() => {
     try{
     getTodayLeaderboard().then((event) => {
       setRankings(event);
     });
 console.log(rankings)
-    // vaultBalance({}).then((value) => {
-    //   setVaultAmount(value ?? 0);
-    // });
+
+getPaymentEvents().then((value) => {
+  setVaultAmount(value?? 0);
+});
     getTodayFirstSubmitter().then((value) => {
       setFirstPlayer(value?? "");
     });

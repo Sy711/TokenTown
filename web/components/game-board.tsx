@@ -1,29 +1,29 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import TargetStack from "@/components/game/TargetStack";
-import CardSlot from "@/components/game/CardSlot";
-import TrashBin from "@/components/game/TrashBin";
-import type { CardType, Card, CardSlots } from "@/types/game-types";
+import TargetStack from "@/components/game/TargetStack"
+import CardSlot from "@/components/game/CardSlot"
+import TrashBin from "@/components/game/TrashBin"
+import type { CardType, Card, CardSlots } from "@/types/game-types"
 import { motion } from "framer-motion"
 import { DndContext, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core" // <--- 确保导入 DragStartEvent
-import { Wallet, Loader2, RefreshCw, Send, Trophy, Clock, Info, Trash2 } from "lucide-react"
+import { Wallet, Loader2, RefreshCw, Send, Trophy, Info } from "lucide-react"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import BackgroundIcons from "../components/background-icons"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useCurrentAccount, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit';
-import {useBetterSignAndExecuteTransaction} from "@/hooks/useBetterTx";
-import {previewPaymentTx,previewIncentiveSubmitTx}from "@/contracts/query";
-import {DailyLeaderboardEvent,IncentiveSubmitPreviewResult} from "@/types/game-types";
+import { useSuiClientQuery } from "@mysten/dapp-kit"
+import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
+import { previewPaymentTx, previewIncentiveSubmitTx } from "@/contracts/query"
+import type { IncentiveSubmitPreviewResult } from "@/types/game-types"
+// Import the Rankings component at the top of the file
+import Rankings from "@/components/game/Rankings"
 
 // 定义卡牌类型
 
-
-
 interface Props {
-  accountAddress: string;
+  accountAddress: string
 }
 export default function GameBoard({ accountAddress }: Props) {
   const [gameState, setGameState] = useState<"playing" | "submitted" | "finished">("playing")
@@ -36,39 +36,47 @@ export default function GameBoard({ accountAddress }: Props) {
   const [showRankings, setShowRankings] = useState(false)
   const [trashError, setTrashError] = useState<string | null>(null)
   const [showTrashSuccess, setShowTrashSuccess] = useState(false)
-  const { handleSignAndExecuteTransaction:previewPayment } = useBetterSignAndExecuteTransaction({tx:previewPaymentTx});
-  const { handleSignAndExecuteTransaction:previewIncentiveSubmit } = useBetterSignAndExecuteTransaction({tx:previewIncentiveSubmitTx});
+  const { handleSignAndExecuteTransaction: previewPayment } = useBetterSignAndExecuteTransaction({
+    tx: previewPaymentTx,
+  })
+  const { handleSignAndExecuteTransaction: previewIncentiveSubmit } = useBetterSignAndExecuteTransaction({
+    tx: previewIncentiveSubmitTx,
+  })
 
   const [vaultAmount, setVaultAmount] = useState<number>(0)
-  const [previewResult, setPreviewResult] = useState<IncentiveSubmitPreviewResult | null>(null);
+  const [previewResult, setPreviewResult] = useState<IncentiveSubmitPreviewResult | null>(null)
   // 修改后的余额查询代码
   const {
     data: balance,
     isLoading: isBalanceLoading,
-    error: balanceError
-  } = useSuiClientQuery('getBalance', {
-    owner: accountAddress,
-    coinType: '0x2::sui::SUI',
-  }, {
-    enabled: !!accountAddress,
-    refetchInterval: 3000
-  });
+    error: balanceError,
+  } = useSuiClientQuery(
+    "getBalance",
+    {
+      owner: accountAddress,
+      coinType: "0x2::sui::SUI",
+    },
+    {
+      enabled: !!accountAddress,
+      refetchInterval: 3000,
+    },
+  )
 
   // 添加调试信息
   useEffect(() => {
     if (balanceError) {
-      console.error('余额查询错误:', balanceError);
+      console.error("余额查询错误:", balanceError)
     }
-  }, [accountAddress, balance, balanceError]);
+  }, [accountAddress, balance, balanceError])
 
   // 修改后的余额显示逻辑
   const walletBalance = useMemo(() => {
     if (!balance || !balance.totalBalance) {
-      return 0;
+      return 0
     }
 
-    return Number(balance?.totalBalance) / 1e9;
-  }, [balance]);
+    return Number(balance?.totalBalance) / 1e9
+  }, [balance])
   const [currentCardTypes, setCurrentCardTypes] = useState<CardType[]>([])
 
   // 排行榜数据
@@ -84,8 +92,6 @@ export default function GameBoard({ accountAddress }: Props) {
   useEffect(() => {
     // 初始化空卡槽
     initializeEmptySlots()
-
-
   }, [])
 
   // 初始化空卡槽
@@ -103,10 +109,9 @@ export default function GameBoard({ accountAddress }: Props) {
 
   // 新增：处理拖拽开始事件
   const handleDragStart = (event: DragStartEvent) => {
-    console.log("Drag Start - Active ID:", event.active.id);
+    console.log("Drag Start - Active ID:", event.active.id)
   }
 
- 
   // 处理卡牌拖拽结束
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -195,18 +200,32 @@ export default function GameBoard({ accountAddress }: Props) {
     const newCardSlots = [...cardSlots]
     const sourceSlot = newCardSlots[sourceSlotIndex]
 
-    // 找出所有相同类型的卡牌
-    const sameTypeCards = sourceSlot.cards.filter((card) => card.type === cardType)
+    // 只获取从顶部开始连续的相同类型卡牌
+    const topCardIndex = sourceSlot.cards.length - 1
+    const consecutiveSameTypeCards: Card[] = []
 
-    // 从源卡槽中移除这些卡牌
-    newCardSlots[sourceSlotIndex].cards = sourceSlot.cards.filter((card) => card.type !== cardType)
+    // 从顶部开始向下检查连续的相同类型卡牌
+    for (let i = topCardIndex; i >= 0; i--) {
+      if (sourceSlot.cards[i].type === cardType) {
+        consecutiveSameTypeCards.unshift(sourceSlot.cards[i])
+      } else {
+        // 一旦遇到不同类型的卡牌，就停止
+        break
+      }
+    }
+
+    // 从源卡槽中移除这些连续的相同类型卡牌
+    newCardSlots[sourceSlotIndex].cards = sourceSlot.cards.slice(
+      0,
+      sourceSlot.cards.length - consecutiveSameTypeCards.length,
+    )
 
     if (targetType === "target") {
       // 添加到目标堆
-      setTargetStack((prev) => [...prev, ...sameTypeCards])
+      setTargetStack((prev) => [...prev, ...consecutiveSameTypeCards])
     } else if (targetType === "slot" && targetSlotIndex !== undefined) {
       // 添加到目标卡槽
-      newCardSlots[targetSlotIndex].cards = [...newCardSlots[targetSlotIndex].cards, ...sameTypeCards]
+      newCardSlots[targetSlotIndex].cards = [...newCardSlots[targetSlotIndex].cards, ...consecutiveSameTypeCards]
     }
 
     // 更新卡槽
@@ -226,41 +245,41 @@ export default function GameBoard({ accountAddress }: Props) {
   // 抽取新卡
   const handleDrawCards = () => {
     if (!accountAddress) {
-      alert("请先连接钱包");
-      return;
+      alert("请先连接钱包")
+      return
     }
-    setIsLoading(true); // 首先设置加载状态
-    
+    setIsLoading(true) // 首先设置加载状态
+
     // 如果超过免费次数，扣除SUI
-    const currentBalance = Number(balance?.totalBalance || 0) / 1e9;
+    const currentBalance = Number(balance?.totalBalance || 0) / 1e9
     if (drawCount >= 6) {
       if (currentBalance < 0.2) {
-        alert("余额不足，无法抽卡");
-        setIsLoading(false); // 余额不足时重置加载状态
-        return;
+        alert("余额不足，无法抽卡")
+        setIsLoading(false) // 余额不足时重置加载状态
+        return
       }
-      previewPayment({wallet:null})
+      previewPayment({ wallet: null })
         .onSuccess(async (result) => {
-          console.log("付款成功", result);
+          console.log("付款成功", result)
           // vaultBalance({}).then((value) => {
           //   setVaultAmount(value ?? 0);
           // });
           // 付款成功后继续抽卡流程
-          distributeNewCards();
-          setDrawCount(prev => prev + 1);
-          setIsLoading(false); // 完成后重置加载状态
+          distributeNewCards()
+          setDrawCount((prev) => prev + 1)
+          setIsLoading(false) // 完成后重置加载状态
         })
         .onError(async (e) => {
-          console.log("付款失败", e);
-          alert("抽卡过程中发生错误");
-          setIsLoading(false); // 错误时重置加载状态
+          console.log("付款失败", e)
+          alert("抽卡过程中发生错误")
+          setIsLoading(false) // 错误时重置加载状态
         })
-        .execute();
+        .execute()
     } else {
       // 免费抽卡
-      distributeNewCards();
-      setDrawCount(prev => prev + 1);
-      setIsLoading(false); // 完成后重置加载状态
+      distributeNewCards()
+      setDrawCount((prev) => prev + 1)
+      setIsLoading(false) // 完成后重置加载状态
     }
   }
   // 分配新卡牌到卡槽
@@ -282,7 +301,7 @@ export default function GameBoard({ accountAddress }: Props) {
       for (let j = 0; j < cardCount; j++) {
         const randomType = selectedTypes[Math.floor(Math.random() * selectedTypes.length)]
         // 改进卡牌 ID 生成，确保唯一性
-        const uniqueId = `card-${i}-${j}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+        const uniqueId = `card-${i}-${j}-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
         newCardSlots[i].cards.push({
           id: uniqueId,
           type: randomType,
@@ -301,7 +320,7 @@ export default function GameBoard({ accountAddress }: Props) {
       return
     }
     setIsLoading(true)
-    previewIncentiveSubmit({cardCount:cardCount})
+    previewIncentiveSubmit({ cardCount: cardCount })
       .onSuccess(async (result) => {
         console.log("提交成功", result)
         setTimeout(() => {
@@ -310,12 +329,12 @@ export default function GameBoard({ accountAddress }: Props) {
         }, 1500)
       })
       .onError(async (e) => {
-        console.log("提交失败", e);
+        console.log("提交失败", e)
         // 添加错误提示和重置加载状态
-        alert("提交失败：" + (e.message || "交易被拒绝"));
-        setIsLoading(false);
+        alert("提交失败：" + (e.message || "交易被拒绝"))
+        setIsLoading(false)
       })
-      .execute();
+      .execute()
   }
 
   return (
@@ -410,7 +429,7 @@ export default function GameBoard({ accountAddress }: Props) {
       )}
 
       {/* 新增固定定位按钮容器 */}
-       {gameState === "playing" && (
+      {gameState === "playing" && (
         <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform">
           <button
             onClick={() => handleSubmit(targetStack.length)}
@@ -421,7 +440,7 @@ export default function GameBoard({ accountAddress }: Props) {
             提交成绩
           </button>
         </div>
-      )} 
+      )}
 
       {/* 提交成功界面 */}
       {gameState === "submitted" && (
@@ -437,32 +456,28 @@ export default function GameBoard({ accountAddress }: Props) {
               您已成功提交 {targetStack.length} 张 {selectedCardType?.toUpperCase()} 卡牌
             </p>
             {previewResult && (
-        <div className="mb-6 space-y-2 text-left">
-          <p className="text-sm text-gray-300">
-            自己: <span className="font-bold text-white">{previewResult.endPlayer}</span>
-          </p>
-          <p className="text-sm text-gray-300">
-            自己奖励: <span className="font-bold text-white">{previewResult.endAmount.toString()}</span>
-          </p>
-          <p className="text-sm text-gray-300">
-            赢家 <span className="font-bold text-white">{previewResult.ownPlayer}</span>
-          </p>
-          <p className="text-sm text-gray-300">
-            赢家奖励: <span className="font-bold text-white">{previewResult.ownAmount.toString()}</span>
-          </p>
-          <p className="text-sm text-gray-300">
-            首位玩家: <span className="font-bold text-white">{previewResult.firstPlayer}</span>
-          </p>
-          <p className="text-sm text-gray-300">
-            首位奖励: <span className="font-bold text-white">{previewResult.firstAmount.toString()}</span>
-          </p>
-        </div>
-      )}
-    <div className="mb-6 space-y-2 text-left">
-              <p className="text-sm text-gray-300">
-                当前排名: <span className="font-bold text-white">3</span>
-              </p>
-            </div>
+              <div className="mb-6 space-y-2 text-left">
+                <p className="text-sm text-gray-300">
+                  自己: <span className="font-bold text-white">{previewResult.endPlayer}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  自己奖励: <span className="font-bold text-white">{previewResult.endAmount.toString()}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  赢家 <span className="font-bold text-white">{previewResult.ownPlayer}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  赢家奖励: <span className="font-bold text-white">{previewResult.ownAmount.toString()}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  首位玩家: <span className="font-bold text-white">{previewResult.firstPlayer}</span>
+                </p>
+                <p className="text-sm text-gray-300">
+                  首位奖励: <span className="font-bold text-white">{previewResult.firstAmount.toString()}</span>
+                </p>
+              </div>
+            )}
+           
 
             <div className="flex justify-center gap-4">
               <Link href="/">
@@ -506,43 +521,11 @@ export default function GameBoard({ accountAddress }: Props) {
 
       {/* 排行榜弹窗 */}
       <Dialog open={showRankings} onOpenChange={setShowRankings}>
-        <DialogContent className="bg-gray-900 text-white">
+        <DialogContent className="bg-gray-900 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl">今日排行榜</DialogTitle>
-            <DialogDescription className="text-gray-300">
-              当前金库总额: {vaultAmount }SUI
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-lg bg-black/50 p-4">
-              <div className="mb-3 grid grid-cols-12 text-xs font-medium text-gray-400">
-                <div className="col-span-1">排名</div>
-                <div className="col-span-4">玩家</div>
-                <div className="col-span-3">卡牌数</div>
-              </div>
-              <div className="space-y-2">
-                {rankings.map((item) => (
-                  <div key={item.rank} className="grid grid-cols-12 items-center rounded py-2 text-sm">
-                    <div className="col-span-1 font-bold">{item.rank}</div>
-                    <div className="col-span-4">{item.player}</div>
-                    <div className="col-span-3">{item.cards}张</div>
-                    <div className="col-span-4 font-medium text-green-400">{item.reward}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="mb-2 text-sm font-medium text-gray-300">您的状态</h3>
-              <div className="rounded-lg bg-blue-900/20 p-3">
-                <div className="mb-3 text-xs text-gray-400">
-                  {targetStack.length > 0
-                    ? `已提交 ${targetStack.length} 张 ${selectedCardType?.toUpperCase()} 卡牌`
-                    : "尚未提交成绩"}
-                </div>
-              </div>
-            </div>
-          </div>
+          <Rankings />
         </DialogContent>
       </Dialog>
     </div>

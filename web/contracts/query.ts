@@ -34,13 +34,21 @@ export const getUserProfile = async (address: string): Promise<CategorizedObject
 };
 
 // 新增支付事件查询
-export const queryPaymentEvents = async () => {
+export const getPaymentEvents =  async (): Promise<number | null> =>{
+  const eventType = `${networkConfig.testnet.variables.Package}::card::PaymentEvent`;
+  
   const events = await suiClient.queryEvents({
-    query: {
-      MoveEventType: `${networkConfig.testnet.variables.Package}::card::PaymentEvent`
-    }
+    query: { MoveEventType: eventType },
+    limit: 1,
+    order: "descending"
   });
-  return events.data.map(event => event.parsedJson as { amount: string });
+
+ 
+  const latest = events.data[0];
+  if (!latest) return null;
+
+  const parsed = latest.parsedJson as { amount: number };
+  return parsed.amount/1_000_000_000;
 };
 
 // 修改后的每日排行榜事件查询
@@ -148,29 +156,6 @@ export const previewPaymentTx = createBetterTxFactory<
  
 );
 
-// export const vaultBalance =createBetterDevInspect<
-// {},
-// number | null // 明确返回类型可能为 null
-// >(
-//   (tx, networkVariables) => {
-//     tx.moveCall({
-//       package: networkVariables.Package,
-//       module: "card",
-//       function: "value",
-//       arguments: [
-//         tx.object(networkVariables.Vault),
-//       ],
-//     });
-//     return tx;
-//   },
-//    (res: DevInspectResults) => {
-//     const value = res?.results?.[0]?.returnValues?.[0]?.[0];
-//     if (!value) return null;
-
-//     const parsed = bcs.U64.parse(new Uint8Array(value));
-//     return Number(parsed);
-//   }
-// )
 
 
 // 激励结算交易构建器 
