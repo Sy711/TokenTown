@@ -9,13 +9,14 @@ import { motion } from "framer-motion"
 import { DndContext, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core" // <--- 确保导入 DragStartEvent
 import { Wallet, Loader2, RefreshCw, Send, Trophy, Info } from "lucide-react"
 import Link from "next/link"
+import { formatAddress } from "@mysten/sui/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import BackgroundIcons from "../components/background-icons"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSuiClientQuery } from "@mysten/dapp-kit"
 import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
-import { previewPaymentTx, previewIncentiveSubmitTx } from "@/contracts/query"
+import { previewPaymentTx, previewIncentiveSubmitTx,getLatestIncentiveSubmitEvent } from "@/contracts/query"
 import type { IncentiveSubmitPreviewResult } from "@/types/game-types"
 // Import the Rankings component at the top of the file
 import Rankings from "@/components/game/Rankings"
@@ -43,7 +44,6 @@ export default function GameBoard({ accountAddress }: Props) {
     tx: previewIncentiveSubmitTx,
   })
 
-  const [vaultAmount, setVaultAmount] = useState<number>(0)
   const [previewResult, setPreviewResult] = useState<IncentiveSubmitPreviewResult | null>(null)
   // 修改后的余额查询代码
   const {
@@ -79,14 +79,7 @@ export default function GameBoard({ accountAddress }: Props) {
   }, [balance])
   const [currentCardTypes, setCurrentCardTypes] = useState<CardType[]>([])
 
-  // 排行榜数据
-  const rankings = [
-    { rank: 1, player: "Player123", cards: 12, reward: "2.5 SUI" },
-    { rank: 2, player: "CryptoKing", cards: 10, reward: "1.5 SUI" },
-    { rank: 3, player: "BlockMaster", cards: 9, reward: "1.0 SUI" },
-    { rank: 4, player: "TokenFan", cards: 8, reward: "0.5 SUI" },
-    { rank: 5, player: "SuiLover", cards: 7, reward: "0.3 SUI" },
-  ]
+
 
   // 初始化游戏
   useEffect(() => {
@@ -261,10 +254,7 @@ export default function GameBoard({ accountAddress }: Props) {
       previewPayment({ wallet: null })
         .onSuccess(async (result) => {
           console.log("付款成功", result)
-          // vaultBalance({}).then((value) => {
-          //   setVaultAmount(value ?? 0);
-          // });
-          // 付款成功后继续抽卡流程
+         
           distributeNewCards()
           setDrawCount((prev) => prev + 1)
           setIsLoading(false) // 完成后重置加载状态
@@ -327,7 +317,13 @@ export default function GameBoard({ accountAddress }: Props) {
           setGameState("submitted")
           setIsLoading(false)
         }, 1500)
+        getLatestIncentiveSubmitEvent().then((value) => {
+          setPreviewResult(value?? null);
+        });
+
+
       })
+
       .onError(async (e) => {
         console.log("提交失败", e)
         // 添加错误提示和重置加载状态
@@ -335,6 +331,7 @@ export default function GameBoard({ accountAddress }: Props) {
         setIsLoading(false)
       })
       .execute()
+
   }
 
   return (
@@ -458,22 +455,22 @@ export default function GameBoard({ accountAddress }: Props) {
             {previewResult && (
               <div className="mb-6 space-y-2 text-left">
                 <p className="text-sm text-gray-300">
-                  自己: <span className="font-bold text-white">{previewResult.endPlayer}</span>
+                  自己: <span className="font-bold text-white">{formatAddress(previewResult.endPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  自己奖励: <span className="font-bold text-white">{previewResult.endAmount.toString()}</span>
+                  自己奖励: <span className="font-bold text-white">{Number(previewResult.endAmount)/1_000_000_000}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  赢家 <span className="font-bold text-white">{previewResult.ownPlayer}</span>
+                  赢家 <span className="font-bold text-white">{formatAddress(previewResult.ownPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  赢家奖励: <span className="font-bold text-white">{previewResult.ownAmount.toString()}</span>
+                  赢家奖励: <span className="font-bold text-white">{Number(previewResult.ownAmount)/1_000_000_000}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  首位玩家: <span className="font-bold text-white">{previewResult.firstPlayer}</span>
+                  首位玩家: <span className="font-bold text-white">{formatAddress(previewResult.firstPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  首位奖励: <span className="font-bold text-white">{previewResult.firstAmount.toString()}</span>
+                  首位奖励: <span className="font-bold text-white">{Number(previewResult.firstAmount)/1_000_000_000}</span>
                 </p>
               </div>
             )}

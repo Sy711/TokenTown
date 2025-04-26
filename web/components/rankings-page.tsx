@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect,useMemo } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useCurrentAccount } from '@mysten/dapp-kit';
@@ -9,8 +9,12 @@ import { Card } from "@/components/ui/card"
 import {getTodayLeaderboard,getTodayFirstSubmitter,getPaymentEvents}from "@/contracts/query";
 import {DailyLeaderboardEvent} from "@/types/game-types";
 import { formatAddress } from '@mysten/sui/utils';
+import { useSuiClientQuery } from "@mysten/dapp-kit"
 
-export default function RankingsPage() {
+interface Props {
+  accountAddress: string
+}
+export default function RankingsPage({ accountAddress }: Props) {
   const [isLoading, setIsLoading] = useState(true)
   const [vaultAmount, setVaultAmount] = useState<number>(0)
 const [rankings, setRankings] = useState<DailyLeaderboardEvent[]>([])
@@ -38,21 +42,22 @@ getPaymentEvents().then((value) => {
       console.log(e);
     }
   })
-  // 删除 isConnected 状态
 
-
-  // 排行榜数据
-  const todayRankings = [
-    { rank: 1, player: "Player123", cards: 12, reward: "2.5 SUI", isLastSubmitter: false },
-    { rank: 2, player: "CryptoKing", cards: 10, reward: "1.5 SUI", isLastSubmitter: false },
-    { rank: 3, player: "BlockMaster", cards: 9, reward: "1.0 SUI", isLastSubmitter: true },
-    { rank: 4, player: "TokenFan", cards: 8, reward: "0.5 SUI", isLastSubmitter: false },
-    { rank: 5, player: "SuiLover", cards: 7, reward: "0.3 SUI", isLastSubmitter: false },
-    { rank: 6, player: "Web3Gamer", cards: 6, reward: "0.0 SUI", isLastSubmitter: false },
-    { rank: 7, player: "CryptoFan", cards: 5, reward: "0.0 SUI", isLastSubmitter: false },
-    { rank: 8, player: "BlockFan", cards: 4, reward: "0.0 SUI", isLastSubmitter: false },
-  ]
-
+  const {
+    data: balance,
+    isLoading: isBalanceLoading,
+    error: balanceError,
+  } = useSuiClientQuery(
+    "getBalance",
+    {
+      owner: accountAddress,
+      coinType: "0x2::sui::SUI",
+    },
+    {
+      enabled: !!accountAddress,
+      refetchInterval: 3000,
+    },
+  )
   useEffect(() => {
     // 模拟加载数据
     setTimeout(() => {
@@ -60,7 +65,15 @@ getPaymentEvents().then((value) => {
       rankings
       vaultAmount
     }, 1000)
+    
   }, [])
+  const walletBalance = useMemo(() => {
+    if (!balance || !balance.totalBalance) {
+      return 0
+    }
+
+    return Number(balance?.totalBalance) / 1e9
+  }, [balance])
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-4">
