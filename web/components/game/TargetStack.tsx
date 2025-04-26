@@ -12,7 +12,7 @@ export default function TargetStack({
   selectedType: CardType | null
   isLocked: boolean
 }) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: "target-stack",
     disabled: isLocked,
   })
@@ -22,7 +22,11 @@ export default function TargetStack({
       ref={setNodeRef}
       className={cn(
         "flex h-32 items-center justify-center rounded-lg border-2 border-dashed transition-colors relative",
-        selectedType ? "border-green-500/50 bg-green-900/10" : "border-yellow-500/50 bg-yellow-900/10",
+        isOver
+          ? "bg-green-900/30 border-green-500"
+          : selectedType
+            ? "border-green-500/50 bg-green-900/10"
+            : "border-yellow-500/50 bg-yellow-900/10",
         isLocked && "border-gray-500/50 bg-gray-900/10",
       )}
     >
@@ -52,11 +56,11 @@ export default function TargetStack({
                 className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 p-1 shadow-lg"
               />
             </div>
-          ))}  
+          ))}
            <div className="ml-4 pl-[calc(20px*var(--count))]" style={{ "--count": cards.length } as any}>
           <span className="rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white"></span>
         </div>    
-            </div>
+        </div>
       )}
     </div>
   )

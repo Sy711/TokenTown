@@ -54,57 +54,50 @@ card::submit(10,&mut vault, ctx(&mut scenario));
                         next_tx(&mut scenario, USER1);
 
   {  // 测试用例1：玩家1创建房间
-            let mut wallet1 = coin::mint_for_testing<SUI>(100_000_000_000, ctx(&mut scenario));
-card::payment(&mut wallet1,&mut vault, ctx(&mut scenario));
+            let  wallet1 = coin::mint_for_testing<SUI>(100_000_000_000, ctx(&mut scenario));
+card::payment(wallet1,&mut vault, ctx(&mut scenario));
 card::submit(10,&mut vault, ctx(&mut scenario));
         // 验证房间创建
-     let empty_wallet = coin::from_balance(coin::into_balance(wallet1), ctx(&mut scenario));
-        coin::destroy_zero(empty_wallet);
 
 };
   next_tx(&mut scenario, USER2);
 
   {  // 测试用例2：玩家2创建房间
-            let mut wallet2 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
-card::payment(&mut wallet2,&mut vault, ctx(&mut scenario));
+            let  wallet2 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
+card::payment(wallet2,&mut vault, ctx(&mut scenario));
 card::submit(20,&mut vault, ctx(&mut scenario));
         // 验证房间创建
-     let empty_wallet = coin::from_balance(coin::into_balance(wallet2), ctx(&mut scenario));
-        coin::destroy_zero(empty_wallet);
+  
 
 };
   next_tx(&mut scenario, USER3);
 
   {  // 测试用例1：玩家1创建房间
-            let mut wallet3 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
-card::payment(&mut wallet3,&mut vault, ctx(&mut scenario));
+            let  wallet3 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
+card::payment( wallet3,&mut vault, ctx(&mut scenario));
 card::submit(30,&mut vault, ctx(&mut scenario));
         // 验证房间创建
-     let empty_wallet = coin::from_balance(coin::into_balance(wallet3), ctx(&mut scenario));
-        coin::destroy_zero(empty_wallet);
+     
 
 };
   next_tx(&mut scenario, USER4);
 
   {  // 测试用例1：玩家1创建房间
-            let mut wallet4 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
-card::payment(&mut wallet4,&mut vault, ctx(&mut scenario));
+            let  wallet4 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
+card::payment(wallet4,&mut vault, ctx(&mut scenario));
 card::submit(40,&mut vault, ctx(&mut scenario));
         // 验证房间创建
-     let empty_wallet = coin::from_balance(coin::into_balance(wallet4), ctx(&mut scenario));
-        coin::destroy_zero(empty_wallet);
+ 
 
 };
   next_tx(&mut scenario, USER5);
 
   {  // 测试用例1：玩家1创建房间
-            let mut wallet5 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
-card::payment(&mut wallet5,&mut vault, ctx(&mut scenario));
+            let  wallet5 = coin::mint_for_testing<SUI>(500_000_000, ctx(&mut scenario));
+card::payment(wallet5,&mut vault, ctx(&mut scenario));
 card::submit(50,&mut vault, ctx(&mut scenario));
         // 验证房间创建
-     let empty_wallet = coin::from_balance(coin::into_balance(wallet5), ctx(&mut scenario));
-        coin::destroy_zero(empty_wallet);
-
+   
 };
 test_scenario::return_shared(vault);
         test_scenario::end(scenario);

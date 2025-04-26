@@ -25,6 +25,11 @@ export default function DraggableCard({
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: card.id,
     disabled: isDraggableDisabled,
+    data: {
+      card,
+      index,
+      total,
+    },
   })
 
   // 计算卡牌在卡槽中的位置
@@ -40,7 +45,7 @@ export default function DraggableCard({
       {...attributes}
       className={cn(
         "absolute left-0 top-0 transition-transform",
-        isDragging ? "z-50 cursor-grabbing" : isTopCard ? "cursor-grab" : "cursor-default",
+        isDragging ? "z-50 cursor-grabbing opacity-50" : isTopCard ? "cursor-grab" : "cursor-default",
         isDraggableDisabled && "pointer-events-none opacity-50",
       )}
       style={{

@@ -6,7 +6,17 @@ import CardSlot from "@/components/game/CardSlot"
 import TrashBin from "@/components/game/TrashBin"
 import type { CardType, Card, CardSlots } from "@/types/game-types"
 import { motion } from "framer-motion"
-import { DndContext, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core" // <--- 确保导入 DragStartEvent
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragStartEvent,
+  closestCenter,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core"
 import { Wallet, Loader2, RefreshCw, Send, Trophy, Info } from "lucide-react"
 import Link from "next/link"
 import { formatAddress } from "@mysten/sui/utils"
@@ -16,7 +26,7 @@ import BackgroundIcons from "../components/background-icons"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSuiClientQuery } from "@mysten/dapp-kit"
 import { useBetterSignAndExecuteTransaction } from "@/hooks/useBetterTx"
-import { previewPaymentTx, previewIncentiveSubmitTx,getLatestIncentiveSubmitEvent } from "@/contracts/query"
+import { previewPaymentTx, previewIncentiveSubmitTx, getLatestIncentiveSubmitEvent } from "@/contracts/query"
 import type { IncentiveSubmitPreviewResult } from "@/types/game-types"
 // Import the Rankings component at the top of the file
 import Rankings from "@/components/game/Rankings"
@@ -37,6 +47,25 @@ export default function GameBoard({ accountAddress }: Props) {
   const [showRankings, setShowRankings] = useState(false)
   const [trashError, setTrashError] = useState<string | null>(null)
   const [showTrashSuccess, setShowTrashSuccess] = useState(false)
+  const [activeCardId, setActiveCardId] = useState<string | null>(null)
+
+  // 配置拖拽传感器，提高拖拽的灵敏度和准确性
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      // 降低激活约束，使拖拽更容易触发
+      activationConstraint: {
+        distance: 5, // 只需要移动5px就可以开始拖拽
+      },
+    }),
+    useSensor(TouchSensor, {
+      // 为触摸设备优化
+      activationConstraint: {
+        delay: 100, // 减少延迟
+        tolerance: 5, // 增加容差
+      },
+    }),
+  )
+
   const { handleSignAndExecuteTransaction: previewPayment } = useBetterSignAndExecuteTransaction({
     tx: previewPaymentTx,
   })
@@ -79,8 +108,6 @@ export default function GameBoard({ accountAddress }: Props) {
   }, [balance])
   const [currentCardTypes, setCurrentCardTypes] = useState<CardType[]>([])
 
-
-
   // 初始化游戏
   useEffect(() => {
     // 初始化空卡槽
@@ -103,11 +130,13 @@ export default function GameBoard({ accountAddress }: Props) {
   // 新增：处理拖拽开始事件
   const handleDragStart = (event: DragStartEvent) => {
     console.log("Drag Start - Active ID:", event.active.id)
+    setActiveCardId(event.active.id as string)
   }
 
   // 处理卡牌拖拽结束
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+    setActiveCardId(null)
 
     if (!over) return
 
@@ -235,6 +264,18 @@ export default function GameBoard({ accountAddress }: Props) {
     return [null, -1]
   }
 
+  // 获取当前拖拽的卡牌
+  const getActiveCard = (): Card | null => {
+    if (!activeCardId) return null
+
+    for (const slot of cardSlots) {
+      const card = slot.cards.find((card) => card.id === activeCardId)
+      if (card) return card
+    }
+
+    return null
+  }
+
   // 抽取新卡
   const handleDrawCards = () => {
     if (!accountAddress) {
@@ -254,7 +295,7 @@ export default function GameBoard({ accountAddress }: Props) {
       previewPayment({ wallet: null })
         .onSuccess(async (result) => {
           console.log("付款成功", result)
-         
+
           distributeNewCards()
           setDrawCount((prev) => prev + 1)
           setIsLoading(false) // 完成后重置加载状态
@@ -318,10 +359,8 @@ export default function GameBoard({ accountAddress }: Props) {
           setIsLoading(false)
         }, 1500)
         getLatestIncentiveSubmitEvent().then((value) => {
-          setPreviewResult(value?? null);
-        });
-
-
+          setPreviewResult(value ?? null)
+        })
       })
 
       .onError(async (e) => {
@@ -331,8 +370,10 @@ export default function GameBoard({ accountAddress }: Props) {
         setIsLoading(false)
       })
       .execute()
-
   }
+
+  // 获取当前拖拽的卡牌
+  const activeCard = getActiveCard()
 
   return (
     <div className="relative min-h-screen w-full p-4">
@@ -365,8 +406,13 @@ export default function GameBoard({ accountAddress }: Props) {
 
       {/* 游戏界面 */}
       {gameState === "playing" && (
-        // 修改：在 DndContext 上添加 onDragStart
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        // 修改：在 DndContext 上添加 sensors 和 collisionDetection 策略
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 目标卡牌堆 */}
@@ -422,6 +468,19 @@ export default function GameBoard({ accountAddress }: Props) {
               </div>
             </div>
           </div>
+
+          {/* 拖拽覆盖层 - 显示当前拖拽的卡牌 */}
+          <DragOverlay>
+            {activeCard && (
+              <div className="relative">
+                <img
+                  src={activeCard.image || "/placeholder.svg"}
+                  alt={activeCard.type}
+                  className="h-16 w-16 rounded-full border-2 border-green-400 bg-black/40 p-1 shadow-lg scale-110"
+                />
+              </div>
+            )}
+          </DragOverlay>
         </DndContext>
       )}
 
@@ -458,23 +517,25 @@ export default function GameBoard({ accountAddress }: Props) {
                   自己: <span className="font-bold text-white">{formatAddress(previewResult.endPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  自己奖励: <span className="font-bold text-white">{Number(previewResult.endAmount)/1_000_000_000}</span>
+                  自己奖励:{" "}
+                  <span className="font-bold text-white">{Number(previewResult.endAmount) / 1_000_000_000}SUI</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   赢家 <span className="font-bold text-white">{formatAddress(previewResult.ownPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  赢家奖励: <span className="font-bold text-white">{Number(previewResult.ownAmount)/1_000_000_000}</span>
+                  赢家奖励:{" "}
+                  <span className="font-bold text-white">{Number(previewResult.ownAmount) / 1_000_000_000}SUI</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   首位玩家: <span className="font-bold text-white">{formatAddress(previewResult.firstPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  首位奖励: <span className="font-bold text-white">{Number(previewResult.firstAmount)/1_000_000_000}</span>
+                  首位奖励:{" "}
+                  <span className="font-bold text-white">{Number(previewResult.firstAmount) / 1_000_000_000}SUI</span>
                 </p>
               </div>
             )}
-           
 
             <div className="flex justify-center gap-4">
               <Link href="/">

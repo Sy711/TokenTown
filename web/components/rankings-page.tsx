@@ -85,12 +85,9 @@ getPaymentEvents().then((value) => {
         </Link>
         <div className="flex items-center gap-2">
           <Users size={18} className="text-blue-400" />
-          <span className="text-sm font-medium text-white">限制名额: 20名</span>
+          <span className="text-sm font-medium text-white">限制名额: 5名</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Wallet size={18} className="text-yellow-400" />
-          <span className="text-sm font-medium text-white">10.5 SUI</span>
-        </div>
+        
       </div>
 
       {/* 主要内容 */}
