@@ -13,6 +13,10 @@ export default function BackgroundIcons() {
     { src: "/sui.svg", width: 58, height: 58, className: "animate-float-fast" },
     { src: "/navx.svg", width: 62, height: 62, className: "animate-float-slow" },
     { src: "/deep.svg", width: 56, height: 56, className: "animate-float-medium" },
+    { src: "/fdusd.svg", width: 60, height: 60, className: "animate-float-slow" }, // 新增图标
+    { src: "/ns.svg", width: 60, height: 60, className: "animate-float-medium" }, // 新增图标
+    { src: "/blue.png",width: 60, height: 60, className: "animate-float-medium" },
+
   ]
 
   // 使用 useMemo 缓存图标实例，避免每次重新渲染时重新生成

@@ -81,16 +81,36 @@ public fun submit(card_count: u64, vault: &mut Vault, ctx: &mut TxContext) {
     assert!(vec_map::size(&vault.leaderboard) < 5, ECountNotEnough);
     let sender = tx_context::sender(ctx);
     assert!(!vault.leaderboard.contains(&sender), EPlayerAlreadySubmitted);
-    let current_day = (tx_context::epoch(ctx) / 86400000)+1; // 将时间戳转换为天数
+    
+    // 获取当前时间戳（毫秒）
+    let epoch_time = tx_context::epoch(ctx);
+    
+    // 计算当前日期（按照每天0点开始计算）
+    // 将毫秒转换为天，并向下取整，得到从纪元开始的天数
+    let current_day = epoch_time / 86400000;
+    
+    print(&epoch_time);
     print(&current_day);
     print(&vault.last_settled_day);
-    print(&232323);
-    assert!(current_day > vault.last_settled_day, EAlreadySettledToday); // 新增错误码4：当天已结算
+    
+    // 检查是否是新的一天
+    assert!(current_day > vault.last_settled_day || vault.last_settled_day == 0, EAlreadySettledToday);
+    
+    // 如果是新的一天，但排行榜不为空，则清空排行榜
+    if (current_day > vault.last_settled_day && !vec_map::is_empty(&vault.leaderboard)) {
+        while (!vec_map::is_empty(&vault.leaderboard)) {
+            let (_, _) = vec_map::pop(&mut vault.leaderboard);
+        };
+    };
+    
     if (vault.first_player == @0x0 && vector::contains(&vault.paid_players, &sender)) {
         vault.first_player = sender;
         event::emit(FirstEvent { player: sender });
     };
+    
     vault.leaderboard.insert(sender, card_count);
+    
+    // 如果达到5人，则进行结算
     if (vec_map::size(&vault.leaderboard) == 5) {
         if (vault.prize_pool.value() >= ENTRY_FEE) {
             incentive_submit(card_count, vault, ctx);

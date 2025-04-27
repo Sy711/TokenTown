@@ -10,12 +10,13 @@ import {
   DndContext,
   type DragEndEvent,
   type DragStartEvent,
-  closestCenter,
+  pointerWithin,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
+  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core"
 import { Wallet, Loader2, RefreshCw, Send, Trophy, Info } from "lucide-react"
 import Link from "next/link"
@@ -49,22 +50,37 @@ export default function GameBoard({ accountAddress }: Props) {
   const [showTrashSuccess, setShowTrashSuccess] = useState(false)
   const [activeCardId, setActiveCardId] = useState<string | null>(null)
 
-  // 配置拖拽传感器，提高拖拽的灵敏度和准确性
+  // 修改 DndContext 配置，优化拖拽灵敏度和响应性
+
+  // 找到 sensors 配置部分并替换为以下代码
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      // 降低激活约束，使拖拽更容易触发
+      // 使用更低的激活阈值，提高响应性
       activationConstraint: {
-        distance: 5, // 只需要移动5px就可以开始拖拽
+        distance: 1, // 降低到1px就可以开始拖拽
+        tolerance: 8, // 增加容差
+        delay: 0, // 移除延迟
       },
     }),
     useSensor(TouchSensor, {
       // 为触摸设备优化
       activationConstraint: {
-        delay: 100, // 减少延迟
-        tolerance: 5, // 增加容差
+        delay: 0, // 移除延迟
+        tolerance: 10, // 增加容差
       },
     }),
   )
+
+  // 添加自定义拖动动画配置
+  const dropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: "0.5",
+        },
+      },
+    }),
+  }
 
   const { handleSignAndExecuteTransaction: previewPayment } = useBetterSignAndExecuteTransaction({
     tx: previewPaymentTx,
@@ -315,7 +331,7 @@ export default function GameBoard({ accountAddress }: Props) {
   }
   // 分配新卡牌到卡槽
   const distributeNewCards = () => {
-    const allCardTypes: CardType[] = ["wusdc", "wbtc", "wal", "cetus", "usdt", "sui", "navx", "deep"]
+    const allCardTypes: CardType[] = ["wusdc", "wbtc", "wal", "cetus", "usdt", "sui", "navx", "deep", "fdusd", "ns","blue"]
 
     // 随机选择7种卡牌类型
     const shuffledTypes = [...allCardTypes].sort(() => Math.random() - 0.5)
@@ -336,7 +352,7 @@ export default function GameBoard({ accountAddress }: Props) {
         newCardSlots[i].cards.push({
           id: uniqueId,
           type: randomType,
-          image: `/${randomType}${randomType === "wal" || randomType === "cetus" ? ".png" : ".svg"}`,
+          image: `/${randomType}${randomType === "wal" || randomType === "cetus"|| randomType === "blue" ? ".png" : ".svg"}`,
         })
       }
     }
@@ -409,9 +425,17 @@ export default function GameBoard({ accountAddress }: Props) {
         // 修改：在 DndContext 上添加 sensors 和 collisionDetection 策略
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={pointerWithin}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          autoScroll={{
+            enabled: true,
+            speed: 10,
+            threshold: {
+              x: 0,
+              y: 0,
+            },
+          }}
         >
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -470,7 +494,7 @@ export default function GameBoard({ accountAddress }: Props) {
           </div>
 
           {/* 拖拽覆盖层 - 显示当前拖拽的卡牌 */}
-          <DragOverlay>
+          <DragOverlay dropAnimation={dropAnimation}>
             {activeCard && (
               <div className="relative">
                 <img
@@ -518,21 +542,21 @@ export default function GameBoard({ accountAddress }: Props) {
                 </p>
                 <p className="text-sm text-gray-300">
                   自己奖励:{" "}
-                  <span className="font-bold text-white">{Number(previewResult.endAmount) / 1_000_000_000}SUI</span>
+                  <span className="font-bold text-white">{Number(previewResult.endAmount) / 1_000_000_000}</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   赢家 <span className="font-bold text-white">{formatAddress(previewResult.ownPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   赢家奖励:{" "}
-                  <span className="font-bold text-white">{Number(previewResult.ownAmount) / 1_000_000_000}SUI</span>
+                  <span className="font-bold text-white">{Number(previewResult.ownAmount) / 1_000_000_000}</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   首位玩家: <span className="font-bold text-white">{formatAddress(previewResult.firstPlayer)}</span>
                 </p>
                 <p className="text-sm text-gray-300">
                   首位奖励:{" "}
-                  <span className="font-bold text-white">{Number(previewResult.firstAmount) / 1_000_000_000}SUI</span>
+                  <span className="font-bold text-white">{Number(previewResult.firstAmount) / 1_000_000_000}</span>
                 </p>
               </div>
             )}

@@ -2,8 +2,9 @@
 import { useDroppable } from "@dnd-kit/core"
 import { cn } from "@/lib/utils"
 import type { Card, CardType } from "@/types/game-types"
+import { memo } from "react"
 
-export default function TargetStack({
+const TargetStack = memo(function TargetStack({
   cards,
   selectedType,
   isLocked,
@@ -29,11 +30,12 @@ export default function TargetStack({
             : "border-yellow-500/50 bg-yellow-900/10",
         isLocked && "border-gray-500/50 bg-gray-900/10",
       )}
+      style={{ touchAction: "none" }}
     >
       {cards.length === 0 ? (
         <div className="text-center text-gray-400">{isLocked ? "已锁定" : "拖拽卡牌到这里"}</div>
       ) : (
-        <div className="relative flex h-full items-center">
+        <div className="relative flex h-full w-full items-center">
           {/* Card count badge - positioned at top-right corner with high z-index */}
           <div className="absolute top-2 right-2 z-50">
             <span className="rounded-full bg-black/80 px-3 py-1 text-sm font-medium text-white shadow-md border border-green-500/30">
@@ -54,6 +56,7 @@ export default function TargetStack({
                 src={card.image || "/placeholder.svg"}
                 alt={card.type}
                 className="h-16 w-16 rounded-full border-2 border-white/20 bg-black/40 p-1 shadow-lg"
+                draggable="false"
               />
             </div>
           ))}
@@ -64,4 +67,6 @@ export default function TargetStack({
       )}
     </div>
   )
-}
+})
+
+export default TargetStack

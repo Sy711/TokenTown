@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ConnectButton } from '@mysten/dapp-kit'
@@ -8,13 +8,21 @@ import { useCurrentAccount } from '@mysten/dapp-kit';
 import { Trophy, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import BackgroundIcons from "../components/background-icons"
-import {getPaymentEvents}from "@/contracts/query";
+import {getPaymentEvents,getTodayLeaderboard}from "@/contracts/query";
 
 export default function HomeScreen() {
   const account = useCurrentAccount();
   const [showConnectPrompt, setShowConnectPrompt] = useState(false)
   const [showRules, setShowRules] = useState(false)
   const [vaultAmount, setVaultAmount] = useState<number>(0)
+  const [leaderboardCount, setLeaderboardCount] = useState(0) // 新增排行榜长度状态
+
+  // 获取排行榜数据时更新长度
+  useEffect(() => {
+    getTodayLeaderboard().then(events => {
+      setLeaderboardCount(events.length)
+    })
+  }, [])
 
   // 删除 isConnected 状态
   getPaymentEvents().then((value) => {
@@ -74,21 +82,17 @@ export default function HomeScreen() {
               }`}
             onClick={() => !account && setShowConnectPrompt(true)}
           >
-            {account ? (
-              <Link href="/game">
-                <span className="relative z-10 text-xl">开始游戏</span>
+            <Link href={leaderboardCount < 5 ? "/game" : "#"}>
+                <span className="relative z-10 text-xl">
+                  {leaderboardCount >= 5 ? "今日已满" : "开始游戏"}
+                </span>
               </Link>
-            ) : (
-              <span className="relative z-10 text-xl">开始游戏</span>
-            )}
-          </motion.button>
-
+            </motion.button>
           <Dialog open={showConnectPrompt} onOpenChange={setShowConnectPrompt}>
             
           </Dialog>
         </div>
-        <Link href="/rankings">
-            <motion.button
+        <Link href="/rankings" className="mt-4">             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05 }}

@@ -3,8 +3,9 @@ import { useDroppable } from "@dnd-kit/core"
 import DraggableCard from "./DraggableCard"
 import type { CardSlots, CardType } from "@/types/game-types"
 import { cn } from "@/lib/utils"
+import { memo } from "react"
 
-export default function CardSlot({
+const CardSlot = memo(function CardSlot({
   slot,
   isDisabled,
   selectedType,
@@ -51,10 +52,11 @@ export default function CardSlot({
       <div
         ref={setNodeRef}
         className={cn(
-          "h-28 w-full rounded-lg p-1 transition-colors",
+          "h-28 w-full rounded-lg p-1 transition-colors relative",
           isOver && canAcceptSelectedType ? "bg-green-900/30 border-2 border-green-500/50" : "bg-yellow-900/20",
           isDisabled && "opacity-70",
         )}
+        style={{ touchAction: "none" }}
       >
         <div className="relative h-full w-full">
           {slot.cards.map((card, index) => {
@@ -79,4 +81,6 @@ export default function CardSlot({
       </div>
     </div>
   )
-}
+})
+
+export default CardSlot
