@@ -142,17 +142,7 @@ getPaymentEvents().then((value) => {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-center">
-                <Link href="/game">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 font-medium text-white shadow-lg transition-all hover:from-blue-600 hover:to-purple-700"
-                  >
-                    继续游戏
-                  </motion.button>
-                </Link>
-              </div>
+             
             </>
           )}
         </Card>

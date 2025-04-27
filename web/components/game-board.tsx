@@ -430,7 +430,6 @@ export default function GameBoard({ accountAddress }: Props) {
           onDragEnd={handleDragEnd}
           autoScroll={{
             enabled: true,
-            speed: 10,
             threshold: {
               x: 0,
               y: 0,
@@ -589,13 +588,12 @@ export default function GameBoard({ accountAddress }: Props) {
               <p>2. 从卡槽中选定一类卡牌为目标堆叠卡</p>
               <p>3. 只能将相同类型卡牌堆叠至目标卡槽</p>
               <p>4. 每日前6次抽卡免费，之后每次抽卡0.2 SUI</p>
-              <p>5. 每日22:00停止提交，结算当天排名</p>
             </div>
             <div>
               <h3 className="mb-1 font-medium text-blue-400">奖励机制</h3>
-              <p>1. 排名前5名玩家可获得金库奖励</p>
-              <p>2. 若当日有人付费抽卡，最后提交者可获得1/6金库奖励</p>
-              <p>3. 奖励将在次日自动发放至您的钱包</p>
+              <p>1. 若当日有人付费抽卡，排名第1名玩家可获得金库一半的奖励</p>
+              <p>2. 若当日有人付费抽卡，作为激励最后提交者可获得1/6金库奖励</p>
+              <p>3. 第一位付费提交者可获得1/3金库奖励</p>
             </div>
           </div>
         </DialogContent>

@@ -1,33 +1,51 @@
 "use client"
 
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ConnectButton } from '@mysten/dapp-kit'
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { ConnectButton } from "@mysten/dapp-kit"
+import { useCurrentAccount } from "@mysten/dapp-kit"
 import { Trophy, Info } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import BackgroundIcons from "../components/background-icons"
-import {getPaymentEvents,getTodayLeaderboard}from "@/contracts/query";
+import { getPaymentEvents, getTodayLeaderboard } from "@/contracts/query"
 
 export default function HomeScreen() {
-  const account = useCurrentAccount();
+  const account = useCurrentAccount()
   const [showConnectPrompt, setShowConnectPrompt] = useState(false)
   const [showRules, setShowRules] = useState(false)
   const [vaultAmount, setVaultAmount] = useState<number>(0)
   const [leaderboardCount, setLeaderboardCount] = useState(0) // 新增排行榜长度状态
+  const [showLimitPrompt, setShowLimitPrompt] = useState(false) // 新增限制提示状态
 
   // 获取排行榜数据时更新长度
   useEffect(() => {
-    getTodayLeaderboard().then(events => {
+    // 获取奖池金额
+    const fetchVaultAmount = async () => {
+      const amount = await getPaymentEvents()
+      setVaultAmount(amount ?? 0)
+    }
+
+    // 获取排行榜数据
+    const fetchLeaderboard = async () => {
+      const events = await getTodayLeaderboard()
       setLeaderboardCount(events.length)
-    })
+    }
+
+    fetchVaultAmount()
+    fetchLeaderboard()
   }, [])
 
+  // 处理游戏按钮点击
+  const handleGameButtonClick = () => {
+    if (leaderboardCount >= 5) {
+      setShowLimitPrompt(true)
+      return
+    }
+  }
+
   // 删除 isConnected 状态
-  getPaymentEvents().then((value) => {
-    setVaultAmount(value?? 0);
-  });
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
       {/* 背景图标 */}
@@ -47,8 +65,6 @@ export default function HomeScreen() {
             <span>游戏规则</span>
           </button>
           <ConnectButton />
-
-
         </div>
       </div>
 
@@ -67,7 +83,6 @@ export default function HomeScreen() {
               <Trophy size={14} />
               <span>今日奖池: {vaultAmount} SUI</span>
             </div>
-
           </div>
         </motion.div>
 
@@ -77,35 +92,57 @@ export default function HomeScreen() {
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: account ? 1.05 : 1, boxShadow: account ? "0 0 25px rgba(66, 153, 225, 0.6)" : "none" }}
             whileTap={{ scale: account ? 0.95 : 1 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
-            className={`relative overflow-hidden rounded-full px-16 py-4 font-bold text-white shadow-lg ${account ? "bg-gradient-to-r from-[#4DA2FF] to-[#0DC3A4]" : "bg-gray-400/50 cursor-not-allowed"
-              }`}
-            onClick={() => !account && setShowConnectPrompt(true)}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            className={`relative overflow-hidden rounded-full px-16 py-4 font-bold text-white shadow-lg ${
+              account ? "bg-gradient-to-r from-[#4DA2FF] to-[#0DC3A4]" : "bg-gray-400/50 cursor-not-allowed"
+            }`}
+            onClick={() => {
+              if (!account) {
+                setShowConnectPrompt(true)
+              } else if (leaderboardCount >= 5) {
+                setShowLimitPrompt(true)
+              }
+            }}
           >
-            <Link href={leaderboardCount < 5 ? "/game" : "#"}>
-                <span className="relative z-10 text-xl">
-                  {leaderboardCount >= 5 ? "今日已满" : "开始游戏"}
-                </span>
+            {account ? (
+              <Link href={leaderboardCount < 5 ? "/game" : "#"} className="block w-full h-full" onClick={(e) => leaderboardCount >= 5 && e.preventDefault()}>
+                <span className="relative z-10 text-xl">{leaderboardCount >= 5 ? "今日已满" : "开始游戏"}</span>
               </Link>
-            </motion.button>
-          <Dialog open={showConnectPrompt} onOpenChange={setShowConnectPrompt}>
-            
+            ) : (
+              <span className="relative z-10 text-xl">连接钱包</span>
+            )}
+          </motion.button>
+          <Dialog open={showConnectPrompt} onOpenChange={setShowConnectPrompt}></Dialog>
+          
+          {/* 新增每日限制提示弹窗 */}
+          <Dialog open={showLimitPrompt} onOpenChange={setShowLimitPrompt}>
+            <DialogContent className="bg-gray-900 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl">每日限制</DialogTitle>
+                <DialogDescription className="text-gray-300">游戏参与人数已达上限</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <p>今日游戏参与人数已达到5人上限，请明天再来参与！</p>
+                <p>您可以查看当前排行榜，了解今日游戏情况。</p>
+              </div>
+            </DialogContent>
           </Dialog>
         </div>
-        <Link href="/rankings" className="mt-4">             <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ delay: 0.8, duration: 0.4 }}
-              className="flex items-center justify-center gap-2 rounded-full bg-white/10 px-8 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
-            >
-              <Trophy size={20} />
-              <span>查看排行榜</span>
-            </motion.button>
-          </Link>
+        <Link href="/rankings" className="mt-4">
+          {" "}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+            className="flex items-center justify-center gap-2 rounded-full bg-white/10 px-8 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20"
+          >
+            <Trophy size={20} />
+            <span>查看排行榜</span>
+          </motion.button>
+        </Link>
       </div>
-
 
       {/* 规则弹窗 */}
       <Dialog open={showRules} onOpenChange={setShowRules}>
@@ -121,13 +158,12 @@ export default function HomeScreen() {
               <p>2. 从卡槽中选定一类卡牌为目标堆叠卡</p>
               <p>3. 只能将相同类型卡牌堆叠至目标卡槽</p>
               <p>4. 每日前6次抽卡免费，之后每次抽卡0.2 SUI</p>
-              <p>5. 每日22:00停止提交，结算当天排名</p>
             </div>
             <div>
               <h3 className="mb-1 font-medium text-blue-400">奖励机制</h3>
-              <p>1. 排名前5名玩家可获得金库奖励</p>
-              <p>2. 若当日有人付费抽卡，最后提交者可获得1/5金库奖励</p>
-              <p>3. 奖励将在次日自动发放至您的钱包</p>
+              <p>1. 若当日有人付费抽卡，排名第1名玩家可获得金库一半的奖励</p>
+              <p>2. 若当日有人付费抽卡，作为激励最后提交者可获得1/6金库奖励</p>
+              <p>3. 第一位付费提交者可获得1/3金库奖励</p>
             </div>
           </div>
         </DialogContent>
@@ -135,4 +171,3 @@ export default function HomeScreen() {
     </div>
   )
 }
-
