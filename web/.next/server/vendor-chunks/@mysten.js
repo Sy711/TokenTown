@@ -1071,6 +1071,16 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 
 /***/ }),
 
+/***/ "(ssr)/./node_modules/@mysten/sui/dist/esm/utils/format.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/@mysten/sui/dist/esm/utils/format.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   formatAddress: () => (/* binding */ formatAddress),\n/* harmony export */   formatDigest: () => (/* binding */ formatDigest)\n/* harmony export */ });\nconst ELLIPSIS = \"\\u2026\";\nfunction formatAddress(address) {\n  if (address.length <= 6) {\n    return address;\n  }\n  const offset = address.startsWith(\"0x\") ? 2 : 0;\n  return `0x${address.slice(offset, offset + 4)}${ELLIPSIS}${address.slice(-4)}`;\n}\nfunction formatDigest(digest) {\n  return `${digest.slice(0, 10)}${ELLIPSIS}`;\n}\n\n//# sourceMappingURL=format.js.map\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9ub2RlX21vZHVsZXMvQG15c3Rlbi9zdWkvZGlzdC9lc20vdXRpbHMvZm9ybWF0LmpzIiwibWFwcGluZ3MiOiI7Ozs7O0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsY0FBYyxrQ0FBa0MsRUFBRSxTQUFTLEVBQUUsa0JBQWtCO0FBQy9FO0FBQ0E7QUFDQSxZQUFZLG9CQUFvQixFQUFFLFNBQVM7QUFDM0M7QUFJRTtBQUNGIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vVG9rZW5Ub3duLy4vbm9kZV9tb2R1bGVzL0BteXN0ZW4vc3VpL2Rpc3QvZXNtL3V0aWxzL2Zvcm1hdC5qcz8yYjlhIl0sInNvdXJjZXNDb250ZW50IjpbImNvbnN0IEVMTElQU0lTID0gXCJcXHUyMDI2XCI7XG5mdW5jdGlvbiBmb3JtYXRBZGRyZXNzKGFkZHJlc3MpIHtcbiAgaWYgKGFkZHJlc3MubGVuZ3RoIDw9IDYpIHtcbiAgICByZXR1cm4gYWRkcmVzcztcbiAgfVxuICBjb25zdCBvZmZzZXQgPSBhZGRyZXNzLnN0YXJ0c1dpdGgoXCIweFwiKSA/IDIgOiAwO1xuICByZXR1cm4gYDB4JHthZGRyZXNzLnNsaWNlKG9mZnNldCwgb2Zmc2V0ICsgNCl9JHtFTExJUFNJU30ke2FkZHJlc3Muc2xpY2UoLTQpfWA7XG59XG5mdW5jdGlvbiBmb3JtYXREaWdlc3QoZGlnZXN0KSB7XG4gIHJldHVybiBgJHtkaWdlc3Quc2xpY2UoMCwgMTApfSR7RUxMSVBTSVN9YDtcbn1cbmV4cG9ydCB7XG4gIGZvcm1hdEFkZHJlc3MsXG4gIGZvcm1hdERpZ2VzdFxufTtcbi8vIyBzb3VyY2VNYXBwaW5nVVJMPWZvcm1hdC5qcy5tYXBcbiJdLCJuYW1lcyI6W10sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///(ssr)/./node_modules/@mysten/sui/dist/esm/utils/format.js\n");
+
+/***/ }),
+
 /***/ "(ssr)/./node_modules/@mysten/sui/dist/esm/utils/move-registry.js":
 /*!******************************************************************!*\
   !*** ./node_modules/@mysten/sui/dist/esm/utils/move-registry.js ***!

@@ -14,7 +14,6 @@ const USER2: address = @0x3;
 const USER3: address = @0x4;
 const USER4: address = @0x5;
 const USER5: address = @0x6;
-
 fun init_room(scenario: &mut Scenario) {
 
     next_tx(scenario, ADMIN);
@@ -45,7 +44,9 @@ fun test_member_initialization() {
 next_tx(&mut scenario, USER0);
 
   {  // 测试用例1：玩家1创建房间
-card::submit(10,&mut vault, ctx(&mut scenario));
+  let current_day = test_scenario::epoch_timestamp_ms(&scenario) / 86400000;
+
+card::submit(10, current_day, &mut vault, ctx(&mut scenario));
         // 验证房间创建
 
 };
