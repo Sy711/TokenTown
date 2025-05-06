@@ -391,7 +391,7 @@ console.log(currentDay)
         // 添加错误提示和重置加载状态
         messageApi.error(e.message);
 
-        alert("提交失败：" + ("提交人数已满"))
+        alert("提交失败：" + (e))
         setIsLoading(false)
       })
       .execute()
@@ -597,6 +597,8 @@ console.log(currentDay)
               <p>2. 从卡槽中选定一类卡牌为目标堆叠卡</p>
               <p>3. 只能将相同类型卡牌堆叠至目标卡槽</p>
               <p>4. 每日前6次抽卡免费，之后每次抽卡0.2 SUI</p>
+              <h4 className="mt-2 mb-1 font-medium text-red-400">结束之前，已经提交了的玩家可以再次提交哟（取最高成绩）</h4>
+
             </div>
             <div>
               <h3 className="mb-1 font-medium text-blue-400">奖励机制</h3>

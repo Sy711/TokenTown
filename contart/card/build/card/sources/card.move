@@ -4,17 +4,13 @@ use std::debug::print;
 use sui::balance::{Self, Balance, zero};
 use sui::coin::{Self, Coin};
 use sui::event;
-use sui::object;
 use sui::sui::SUI;
-use sui::transfer;
-use sui::tx_context::{Self, TxContext};
 use sui::vec_map::{Self, VecMap};
 
 const ENTRY_FEE: u64 = 200_000_000;
 const ECoinBalanceNotEnough: u64 = 1; // 余额不足
 const ECountNotEnough: u64 = 2; // 数量不足
 const EPlayerAlreadySubmitted: u64 = 3; // 玩家已提交
-const EAlreadySettledToday: u64 = 4; // 当天已结算
 const EPlayerLimitReached: u64 = 5; // 超过当天玩家数量限制
 
 const MAX_PLAYERS_PER_DAY: u64 = 5; // 每天最多25人提交
@@ -88,19 +84,26 @@ public fun payment(mut amount: Coin<SUI>, vault: &mut Vault, ctx: &mut TxContext
 // 提交，增加 current_day 参数
 public fun submit(card_count: u64, current_day: u64, vault: &mut Vault, ctx: &mut TxContext) {
     assert!(card_count > 0, ECountNotEnough);
-assert!(current_day > vault.last_settled_day, ECountNotEnough);
+    assert!(current_day > vault.last_settled_day, ECountNotEnough);
     let sender = tx_context::sender(ctx);
-    assert!(!vault.leaderboard.contains(&sender), EPlayerAlreadySubmitted);
-
     assert!(vault.today_submit_count < MAX_PLAYERS_PER_DAY, EPlayerLimitReached);
 
     if (vault.first_player == @0x0 && vector::contains(&vault.paid_players, &sender)) {
         vault.first_player = sender;
         event::emit(FirstEvent { player: sender });
     };
-
-    vault.leaderboard.insert(sender, card_count);
-    vault.today_submit_count = vault.today_submit_count + 1;
+    if (vault.leaderboard.contains(&sender)) {
+        let old_value = vec_map::get(&vault.leaderboard, &sender);
+        if(card_count > *old_value) {
+           let (_,_ )= vec_map::remove(&mut vault.leaderboard, &sender);
+                   vault.leaderboard.insert(sender, card_count);
+        }else{
+            return
+        }
+    } else {
+        vault.leaderboard.insert(sender, card_count);
+        vault.today_submit_count = vault.today_submit_count + 1;
+    };
 
     event::emit(DailyLeaderboardEvent { player: sender, card_count });
 
