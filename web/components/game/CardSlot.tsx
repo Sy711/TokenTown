@@ -31,6 +31,19 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
     .map(([type, count]) => ({ type: type as CardType, count: count! })) 
     .sort((a, b) => b.count - a.count)
 
+  // 获取从顶层开始连续的某类型卡牌数量
+  const getTopConsecutiveCount = (type: CardType) => {
+    let count = 0
+    for (let i = slot.cards.length - 1; i >= 0; i--) {
+      if (slot.cards[i].type === type) {
+        count++
+      } else {
+        break
+      }
+    }
+    return count
+  }
+
   return (
     <div className="flex flex-col items-center space-y-1">
       <div
@@ -42,17 +55,21 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
         )}
       >
         <div className="relative h-full w-full">
-          {slot.cards.map((card, index) => (
-            <DraggableCard
-              key={card.id}
-              card={card}
-              index={index}
-              total={slot.cards.length}
-              isDisabled={isDisabled}
-              sameTypeCount={slot.cards.filter((c) => c.type === card.type).length}
-              selectedType={selectedType}
-            />
-          ))}
+          {slot.cards.map((card, index) => {
+            const isTopCard = index === slot.cards.length - 1
+            const topConsecutiveCount = isTopCard ? getTopConsecutiveCount(card.type) : 1
+            return (
+              <DraggableCard
+                key={card.id}
+                card={card}
+                index={index}
+                total={slot.cards.length}
+                isDisabled={isDisabled}
+                sameTypeCount={topConsecutiveCount}
+                selectedType={selectedType}
+              />
+            )
+          })}
 
           {/* 空卡槽提示 */}
           {slot.cards.length === 0 && (

@@ -57,7 +57,7 @@ export default function HomeScreen() {
 
       {/* 顶部导航 */}
       <div className="relative z-10 flex items-center justify-between p-4">
-        <div className="w-20">
+        <div>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
