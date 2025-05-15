@@ -13,11 +13,10 @@ export default function BackgroundIcons() {
     { src: "/sui.svg", width: 58, height: 58, className: "animate-float-fast" },
     { src: "/navx.svg", width: 62, height: 62, className: "animate-float-slow" },
     { src: "/deep.svg", width: 56, height: 56, className: "animate-float-medium" },
-    { src: "/fdusd.svg", width: 60, height: 60, className: "animate-float-slow" }, // 新增图标
-    { src: "/ns.svg", width: 60, height: 60, className: "animate-float-medium" }, // 新增图标
-    { src: "/blue.png",width: 60, height: 60, className: "animate-float-medium" },
-    { src: "/scallop.png", width: 60, height: 60, className: "animate-float-slow" }, // 新增图标
-
+    { src: "/fdusd.svg", width: 60, height: 60, className: "animate-float-slow" },
+    { src: "/ns.svg", width: 60, height: 60, className: "animate-float-medium" },
+    { src: "/blue.png", width: 60, height: 60, className: "animate-float-medium" },
+    { src: "/scallop.png", width: 60, height: 60, className: "animate-float-slow" },
   ]
 
   // 使用 useMemo 缓存图标实例，避免每次重新渲染时重新生成
@@ -28,7 +27,7 @@ export default function BackgroundIcons() {
       const left = `${Math.random() * 100}%`
       const top = `${Math.random() * 100}%`
       const delay = `${Math.random() * 5}s`
-      const opacity = 0.1 + Math.random() * 0.15 // 低透明度
+      const opacity = 0.15 + Math.random() * 0.2 // 增加透明度，使图标更明显
 
       instances.push(
         <motion.img
@@ -43,7 +42,8 @@ export default function BackgroundIcons() {
             top,
             opacity,
             animationDelay: delay,
-            pointerEvents: "none", // 添加内联样式确保兼容性
+            pointerEvents: "none",
+            filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.2))", // 添加发光效果
           }}
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity, scale: 1 }}
@@ -52,7 +52,7 @@ export default function BackgroundIcons() {
       )
     }
     return instances
-  }, []) // 空依赖数组，确保只在组件首次渲染时生成
+  }, [])
 
   return (
     <div className="pointer-events-none" style={{ zIndex: -1 }}>
