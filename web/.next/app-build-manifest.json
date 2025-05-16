@@ -1,3 +1,52 @@
 {
-  "pages": {}
+  "pages": {
+    "/_not-found/page": [
+      "static/chunks/webpack-d632951e0b0b02d9.js",
+      "static/chunks/4bd1b696-ae1b2e0ffd83ad67.js",
+      "static/chunks/215-9ad4b84586401be6.js",
+      "static/chunks/main-app-552748ec134a9cc8.js",
+      "static/chunks/app/_not-found/page-9d5d8e412016c3a6.js"
+    ],
+    "/layout": [
+      "static/chunks/webpack-d632951e0b0b02d9.js",
+      "static/chunks/4bd1b696-ae1b2e0ffd83ad67.js",
+      "static/chunks/215-9ad4b84586401be6.js",
+      "static/chunks/main-app-552748ec134a9cc8.js",
+      "static/css/2a06a3519bf1a945.css",
+      "static/css/6440a65a7c0df857.css",
+      "static/chunks/279-1961488af1624777.js",
+      "static/chunks/134-e88afc7b52a5171d.js",
+      "static/chunks/app/layout-ac44a27ee57304b1.js"
+    ],
+    "/game/page": [
+      "static/chunks/webpack-d632951e0b0b02d9.js",
+      "static/chunks/4bd1b696-ae1b2e0ffd83ad67.js",
+      "static/chunks/215-9ad4b84586401be6.js",
+      "static/chunks/main-app-552748ec134a9cc8.js",
+      "static/chunks/279-1961488af1624777.js",
+      "static/chunks/108-e6e31550dbdb3977.js",
+      "static/chunks/206-42e2a104be827d39.js",
+      "static/chunks/394-1bade362f61f9c4e.js",
+      "static/chunks/app/game/page-287a511cd6d7fce4.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-d632951e0b0b02d9.js",
+      "static/chunks/4bd1b696-ae1b2e0ffd83ad67.js",
+      "static/chunks/215-9ad4b84586401be6.js",
+      "static/chunks/main-app-552748ec134a9cc8.js",
+      "static/chunks/279-1961488af1624777.js",
+      "static/chunks/108-e6e31550dbdb3977.js",
+      "static/chunks/206-42e2a104be827d39.js",
+      "static/chunks/app/page-22f984e65839748c.js"
+    ],
+    "/rankings/page": [
+      "static/chunks/webpack-d632951e0b0b02d9.js",
+      "static/chunks/4bd1b696-ae1b2e0ffd83ad67.js",
+      "static/chunks/215-9ad4b84586401be6.js",
+      "static/chunks/main-app-552748ec134a9cc8.js",
+      "static/chunks/279-1961488af1624777.js",
+      "static/chunks/108-e6e31550dbdb3977.js",
+      "static/chunks/app/rankings/page-fd3321ac82bd3b52.js"
+    ]
+  }
 }
