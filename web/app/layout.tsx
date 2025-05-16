@@ -21,7 +21,7 @@ export default function RootLayout({
         <div className="fixed top-14 left-10 z-50">
           <Link href="/">
             <Image 
-              src="/logo/logo.png" 
+              src="/logo.png" 
               alt="TokenTown Logo" 
               width={100} 
               height={100} 
