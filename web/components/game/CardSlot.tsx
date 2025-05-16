@@ -82,7 +82,7 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
 
           {/* 空卡槽提示 */}
           {slot.cards.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center text-yellow-500/50 text-xs">空卡槽</div>
+            <div className="absolute inset-0 flex items-center justify-center text-yellow-500/50 text-xs">Empty Slot</div>
           )}
         </div>
 
