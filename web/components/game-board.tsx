@@ -192,7 +192,7 @@ export default function GameBoard({ accountAddress }: Props) {
         setTimeout(() => setShowTrashSuccess(false), 2000)
       } else {
         // 显示错误信息
-        setTrashError(`需要至少10张相同类型的卡牌才能丢弃（当前卡槽: ${sameTypeCountInSlot}张）`)
+        setTrashError(`At least 10 cards of the same type are required to discard (Current slot: ${sameTypeCountInSlot})`)
         setTimeout(() => setTrashError(null), 3000)
       }
       return
@@ -572,7 +572,7 @@ export default function GameBoard({ accountAddress }: Props) {
                           <RefreshCw size={40} className="text-white animate-spin" />
                         </div>
                       </div>
-                      <p className="mt-4 text-xl font-bold text-white">抽取卡牌中...</p>
+                      <p className="mt-4 text-xl font-bold text-white">Drawing cards...</p>
                     </motion.div>
                   </motion.div>
                 )}
