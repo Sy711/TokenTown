@@ -298,7 +298,7 @@ export default function GameBoard({ accountAddress }: Props) {
   // 抽取新卡
   const handleDrawCards = () => {
     if (!accountAddress) {
-      messageApi.error("请先连接钱包")
+      messageApi.error("Please connect your wallet first")
       return
     }
     setIsLoading(true)
@@ -308,15 +308,15 @@ export default function GameBoard({ accountAddress }: Props) {
     const currentBalance = Number(balance?.totalBalance || 0) / 1e9
     if (drawCount >= 6) {
       if (currentBalance < 0.2) {
-        messageApi.error("余额不足，无法抽卡")
-        console.log("余额不足，无法抽卡")
+        messageApi.error("Insufficient balance to draw cards")
+        console.log("Insufficient balance to draw cards")
         setIsLoading(false)
         setShowDrawAnimation(false)
         return
       }
       previewPayment({ wallet: null })
         .onSuccess(async (result) => {
-          console.log("付款成功", result)
+          console.log("Payment successful", result)
           setTimeout(() => {
             distributeNewCards()
             setDrawCount((prev) => prev + 1)
@@ -325,7 +325,7 @@ export default function GameBoard({ accountAddress }: Props) {
           }, 1000)
         })
         .onError(async (e) => {
-          console.log("付款失败", e)
+          console.log("Payment failed", e)
           messageApi.error(e.message)
           setIsLoading(false)
           setShowDrawAnimation(false)
@@ -389,7 +389,7 @@ export default function GameBoard({ accountAddress }: Props) {
   // 提交卡组
   const handleSubmit = async (cardCount: number) => {
     if (targetStack.length === 0) {
-      messageApi.warning("请先选择卡牌")
+      messageApi.warning("Please select cards first")
       return
     }
 
@@ -399,8 +399,8 @@ export default function GameBoard({ accountAddress }: Props) {
     setIsLoading(true)
     previewIncentiveSubmit({ cardCount: cardCount, time: currentDay })
       .onSuccess(async (result) => {
-        console.log("提交成功", result)
-        messageApi.success("提交成功！")
+        console.log("Submission successful", result)
+        messageApi.success("Submission successful!")
         setTimeout(() => {
           setGameState("submitted")
           setIsLoading(false)
@@ -410,7 +410,7 @@ export default function GameBoard({ accountAddress }: Props) {
         })
       })
       .onError(async (e) => {
-        console.log("提交失败", e)
+        console.log("Submission failed", e)
         messageApi.error(e.message)
         setIsLoading(false)
       })
