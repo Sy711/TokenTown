@@ -12,6 +12,7 @@ interface DraggableCardProps {
   isDisabled: boolean
   sameTypeCount: number
   selectedType: CardType | null
+  nextDifferentCard?: Card | null
 }
 
 export default function DraggableCard({
@@ -21,29 +22,19 @@ export default function DraggableCard({
   isDisabled,
   sameTypeCount,
   selectedType,
+  nextDifferentCard,
 }: DraggableCardProps) {
-  // 检查是否是最顶层的卡牌
   const isTopCard = index === total - 1
-
-  // 只有最顶层的卡牌可以拖拽
   const isDraggableDisabled = isDisabled || !isTopCard
+  const offset = index * 5 // 减少偏移量
+  const hasMultipleSameType = sameTypeCount > 1
+  const isMatchingSelectedType = selectedType === card.type
+  const isDiscardable = sameTypeCount >= 10
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: card.id,
     disabled: isDraggableDisabled,
   })
-
-  // 计算卡牌在卡槽中的位置
-  const offset = index * 5 // 每张卡片偏移5px
-
-  // 检查是否有多张相同类型的卡牌
-  const hasMultipleSameType = sameTypeCount > 1
-
-  // 检查是否与选定类型匹配
-  const isMatchingSelectedType = selectedType === card.type
-
-  // 检查是否可以丢弃（10张或以上）
-  const isDiscardable = sameTypeCount >= 10
 
   return (
     <motion.div
@@ -51,7 +42,7 @@ export default function DraggableCard({
       {...listeners}
       {...attributes}
       className={cn(
-        "absolute left-0 top-0 transition-all duration-200",
+        "absolute left-0 top-0 transition-all duration-150",
         isDragging ? "z-50 cursor-grabbing" : isTopCard ? "cursor-grab" : "cursor-default",
         isDraggableDisabled && "pointer-events-none",
         isTopCard && "hover:scale-105",
@@ -60,18 +51,18 @@ export default function DraggableCard({
         transform: `translateY(${offset}px)`,
         zIndex: index,
         opacity: isDraggableDisabled ? 0.7 : 1,
+        willChange: "transform",
       }}
-      whileHover={isTopCard ? { y: offset - 5 } : {}}
-      animate={isDragging ? { scale: 1.1 } : { scale: 1 }}
+      whileHover={isTopCard ? {} : {}}
+      animate={isDragging ? { scale: 1.05 } : { scale: 1 }}
     >
       <div className="relative">
-        {/* 发光效果 - 根据卡牌类型和状态变化 */}
         <div
           className={cn(
-            "absolute inset-0 rounded-full blur-md opacity-0 transition-opacity duration-300",
-            isDragging && "opacity-70",
-            isMatchingSelectedType && "bg-green-500/30 opacity-50",
-            isDiscardable && "bg-yellow-500/30 opacity-50",
+            "absolute inset-0 rounded-full blur-md opacity-0 transition-opacity duration-150",
+            isDragging && "opacity-50",
+            isMatchingSelectedType && "bg-green-500/20 opacity-30",
+            isDiscardable && "bg-yellow-500/20 opacity-30",
           )}
         ></div>
 
@@ -79,7 +70,7 @@ export default function DraggableCard({
           src={card.image || "/placeholder.svg"}
           alt={card.type}
           className={cn(
-            "h-16 w-16 rounded-full border-2 bg-black/60 p-1 shadow-lg transition-all",
+            "h-20 w-20 rounded-full border-2 bg-black/60 p-1 shadow-lg transition-all",
             isDragging
               ? "border-green-400 scale-110"
               : isMatchingSelectedType
@@ -91,7 +82,6 @@ export default function DraggableCard({
           )}
         />
 
-        {/* 卡牌数量指示器 */}
         {isTopCard && hasMultipleSameType && (
           <div
             className={cn(
@@ -107,7 +97,6 @@ export default function DraggableCard({
           </div>
         )}
 
-        {/* 卡牌类型指示器 - 仅在顶部卡牌显示 */}
         {isTopCard && (
           <div className="absolute -left-1 -bottom-1 h-4 w-4 rounded-full bg-black/70 flex items-center justify-center border border-white/10">
             <img
@@ -115,6 +104,19 @@ export default function DraggableCard({
               alt={card.type}
               className="h-2.5 w-2.5"
             />
+          </div>
+        )}
+
+        {isTopCard && nextDifferentCard && (
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 transform">
+            <div className="relative">
+              <div className="absolute inset-0 bg-black/50 rounded-full blur-sm"></div>
+              <img
+                src={nextDifferentCard.image || "/placeholder.svg"}
+                alt={nextDifferentCard.type}
+                className="h-8 w-8 rounded-full border border-white/20 bg-black/40 p-0.5"
+              />
+            </div>
           </div>
         )}
       </div>

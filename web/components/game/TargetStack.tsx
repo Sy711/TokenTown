@@ -22,7 +22,7 @@ export default function TargetStack({ cards, selectedType, isLocked }: TargetSta
     <div
       ref={setNodeRef}
       className={cn(
-        "flex h-36 items-center justify-center rounded-xl border-2 border-dashed transition-all relative overflow-hidden group",
+        "flex h-40 items-center justify-center rounded-xl border-2 border-dashed transition-all relative overflow-hidden group",
         selectedType
           ? "border-green-500/50 bg-gradient-to-br from-green-900/20 to-emerald-900/10"
           : "border-yellow-500/50 bg-gradient-to-br from-yellow-900/20 to-amber-900/10",
@@ -75,7 +75,7 @@ export default function TargetStack({ cards, selectedType, isLocked }: TargetSta
                     <img
                       src={card.image || "/placeholder.svg"}
                       alt={card.type}
-                      className="h-16 w-16 rounded-full border-2 border-white/30 bg-black/60 p-1 shadow-lg"
+                      className="h-20 w-20 rounded-full border-2 border-white/30 bg-black/60 p-1 shadow-lg"
                     />
                   </div>
                 </motion.div>
@@ -96,7 +96,7 @@ export default function TargetStack({ cards, selectedType, isLocked }: TargetSta
                 <img
                   src={`/${selectedType}${selectedType === "wal" || selectedType === "cetus" || selectedType === "blue" || selectedType === "scallop" ? ".png" : ".svg"}`}
                   alt={selectedType}
-                  className="h-4 w-4"
+                  className="h-8 w-8"
                 />
                 {selectedType.toUpperCase()}
               </span>

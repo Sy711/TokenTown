@@ -19,7 +19,7 @@ export default function TrashBin({ error, success }: TrashBinProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        "flex h-36 flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all relative overflow-hidden group",
+        "flex h-40 flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all relative overflow-hidden group",
         error
           ? "border-red-500 bg-gradient-to-br from-red-900/20 to-red-800/10"
           : isOver

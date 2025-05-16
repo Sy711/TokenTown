@@ -46,15 +46,15 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
 
   return (
     <div className="flex flex-col items-center space-y-1">
-      <div
+       <div
         ref={setNodeRef}
         className={cn(
-          "h-32 w-full rounded-xl bg-gradient-to-br from-yellow-900/20 to-amber-900/10 p-1 relative transition-all duration-300 border border-yellow-500/20",
+          "h-[300px] w-full rounded-xl bg-gradient-to-br from-yellow-900/20 to-amber-900/10 p-1 relative transition-all duration-300 border border-yellow-500/20",
           isOver && "from-yellow-900/30 to-amber-900/20 border-yellow-500/40 shadow-lg shadow-yellow-500/10",
           slot.cards.length === 0 && "border-dashed",
         )}
       >
-        <div className="relative h-full w-full">
+        <div className="relative h-[calc(100%-3rem)] w-full"> {/* 减去标签区域的高度 */}
           {slot.cards.map((card, index) => {
             const isTopCard = index === slot.cards.length - 1
             const topConsecutiveCount = isTopCard ? getTopConsecutiveCount(card.type) : 1
@@ -82,25 +82,25 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-1 p-1 bg-black/70 rounded-b-lg backdrop-blur-sm border-t border-white/5"
+            className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-1.5 p-2 bg-black/80 rounded-b-lg backdrop-blur-sm border-t border-white/10"
           >
             {typeCountArray.map(({ type, count }) => (
               <div
                 key={type}
                 className={cn(
-                  "text-[8px] px-1.5 py-0.5 rounded-sm flex items-center gap-0.5 transition-all",
+                  "text-[10px] px-2 py-1 rounded-md flex items-center gap-1 transition-all",
                   count >= 10
-                    ? "bg-gradient-to-r from-green-600/80 to-emerald-600/80 text-white shadow-sm shadow-green-500/20"
-                    : "bg-gray-700/80 text-gray-300",
-                  selectedType === type && "ring-1 ring-white",
+                    ? "bg-gradient-to-r from-green-600/90 to-emerald-600/90 text-white shadow-sm shadow-green-500/20"
+                    : "bg-gray-700/90 text-gray-200",
+                  selectedType === type && "ring-1 ring-white/50",
                 )}
               >
                 <img
                   src={`/${type}${type === "wal" || type === "cetus" || type === "blue" || type === "scallop" ? ".png" : ".svg"}`}
                   alt={type}
-                  className="w-2.5 h-2.5"
+                  className="w-3.5 h-3.5"
                 />
-                <span>{count}</span>
+                <span className="font-medium">{count}</span>
               </div>
             ))}
           </motion.div>

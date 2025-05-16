@@ -57,15 +57,15 @@ export default function GameBoard({ accountAddress }: Props) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 1,
-        tolerance: 8,
+        distance: 0,
+        tolerance: 5,
         delay: 0,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 0,
-        tolerance: 10,
+        tolerance: 5,
       },
     }),
   )
@@ -474,7 +474,7 @@ export default function GameBoard({ accountAddress }: Props) {
             },
           }}
         >
-          <div className="mx-auto max-w-4xl space-y-6">
+          <div className="mx-auto max-w-6xl space-y-6">
             {/* 游戏提示 */}
             <AnimatePresence>
               {showHint && (
@@ -528,7 +528,7 @@ export default function GameBoard({ accountAddress }: Props) {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-white flex items-center">
-                  <div className="w-2 h-6 bg-gradient-to-r from-green-500 to-teal-500 rounded-full mr-2"></div>
+                  <div className="w-2 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-full mr-2"></div>
                   卡牌区域
                 </h3>
                 <TooltipProvider>
