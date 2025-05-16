@@ -615,14 +615,14 @@ export default function GameBoard({ accountAddress }: Props) {
             {isLoading ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>处理中...</span>
+                <span>Processing...</span>
               </>
             ) : (
               <>
                 <Send className="h-5 w-5" />
-                <span>提交成绩</span>
+                <span>Submit Score</span>
                 {targetStack.length > 0 && (
-                  <span className="ml-1 bg-white/20 px-2 py-0.5 rounded-full text-sm">{targetStack.length}张</span>
+                  <span className="ml-1 bg-white/20 px-2 py-0.5 rounded-full text-sm">{targetStack.length} cards</span>
                 )}
               </>
             )}
