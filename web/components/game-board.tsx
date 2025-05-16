@@ -439,7 +439,7 @@ export default function GameBoard({ accountAddress }: Props) {
           <Link href="/">
             <button className="flex items-center gap-1 rounded-full bg-indigo-600/80 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:scale-105">
               <Home size={16} />
-              <span>首页</span>
+              <span>Home</span>
             </button>
           </Link>
           <button
@@ -447,14 +447,14 @@ export default function GameBoard({ accountAddress }: Props) {
             className="flex items-center gap-1 rounded-full bg-blue-600/80 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-blue-700 hover:scale-105"
           >
             <Trophy size={16} />
-            <span>排行榜</span>
+            <span>Leaderboard</span>
           </button>
           <button
             onClick={() => setShowRules(true)}
             className="flex items-center gap-1 rounded-full bg-gray-600/50 px-3 py-1.5 text-sm font-medium text-white transition-all hover:bg-gray-700 hover:scale-105"
           >
             <Info size={16} />
-            <span>规则</span>
+            <span>Rules</span>
           </button>
         </div>
       </div>
@@ -486,7 +486,7 @@ export default function GameBoard({ accountAddress }: Props) {
                 >
                   <p className="text-white">
                     <Sparkles className="inline-block mr-2 h-4 w-4" />
-                    将相同类型的卡牌拖到目标区域，堆叠越多卡牌获得的分数越高！
+                    Drag cards of the same type to the target area, the more cards you stack, the higher your score!
                   </p>
                 </motion.div>
               )}
@@ -498,12 +498,12 @@ export default function GameBoard({ accountAddress }: Props) {
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-medium text-white flex items-center">
                     <div className="w-2 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-2"></div>
-                    目标卡牌堆
+                    Target Stack
                   </h3>
                   <span className="text-xs bg-black/30 px-2 py-1 rounded-full text-blue-300 backdrop-blur-sm">
                     {selectedCardType
-                      ? `已选择 ${selectedCardType.toUpperCase()} 类型卡牌`
-                      : "请选择一种卡牌类型作为目标"}
+                      ? `Selected ${selectedCardType.toUpperCase()} card type`
+                      : "Please select a card type as the target"}
                   </span>
                 </div>
                 <TargetStack cards={targetStack} selectedType={selectedCardType} isLocked={false} />
@@ -514,10 +514,10 @@ export default function GameBoard({ accountAddress }: Props) {
                 <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-medium text-white flex items-center">
                     <div className="w-2 h-6 bg-gradient-to-r from-red-500 to-orange-500 rounded-full mr-2"></div>
-                    垃圾桶
+                    Trash Bin
                   </h3>
                   <span className="text-xs bg-black/30 px-2 py-1 rounded-full text-orange-300 backdrop-blur-sm">
-                    需要至少10张相同类型卡牌才能丢弃
+                    At least 10 cards of the same type are required to discard
                   </span>
                 </div>
                 <TrashBin error={trashError} success={showTrashSuccess} />
@@ -529,7 +529,7 @@ export default function GameBoard({ accountAddress }: Props) {
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-white flex items-center">
                   <div className="w-2 h-10 bg-gradient-to-r from-green-500 to-teal-500 rounded-full mr-2"></div>
-                  卡牌区域
+                  Card Area
                 </h3>
                 <TooltipProvider>
                   <Tooltip>
@@ -540,11 +540,11 @@ export default function GameBoard({ accountAddress }: Props) {
                         className="flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 shadow-lg hover:shadow-blue-500/20 hover:scale-105"
                       >
                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                        抽卡 {drawCount >= 6 ? "(0.2 SUI)" : `(${6 - drawCount}/6免费)`}
+                        Draw {drawCount >= 6 ? "(0.2 SUI)" : `(${6 - drawCount}/6 free)`}
                       </button>
                     </TooltipTrigger>
                     <TooltipContent className="bg-black/80 border border-white/10 text-white">
-                      <p>每日前6次抽卡免费，之后每次需要0.2 SUI</p>
+                      <p>The first 6 draws each day are free, after that each draw costs 0.2 SUI</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -644,24 +644,24 @@ export default function GameBoard({ accountAddress }: Props) {
             </div>
 
             <h2 className="mb-2 text-3xl font-bold text-white bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">
-              提交成功!
+              Submitted Successfully!
             </h2>
             <p className="mb-6 text-xl text-gray-300">
-              您已成功提交 <span className="font-bold text-white">{targetStack.length}</span> 张
-              <span className="font-bold text-white ml-1">{selectedCardType?.toUpperCase()}</span> 卡牌
+              You have successfully submitted <span className="font-bold text-white">{targetStack.length}</span> 
+              <span className="font-bold text-white ml-1">{selectedCardType?.toUpperCase()}</span> cards
             </p>
 
             {previewResult && (
               <div className="mb-6 space-y-3 text-left bg-black/30 p-4 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">自己:</p>
+                  <p className="text-sm text-gray-300">Your Address:</p>
                   <p className="font-bold text-white bg-blue-500/20 px-2 py-0.5 rounded-md">
                     {formatAddress(previewResult.endPlayer)}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">自己奖励:</p>
+                  <p className="text-sm text-gray-300">Your Reward:</p>
                   <p className="font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-md flex items-center">
                     <Zap size={14} className="mr-1" />
                     {Number(previewResult.endAmount) / 1_000_000_000} SUI
@@ -669,14 +669,14 @@ export default function GameBoard({ accountAddress }: Props) {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">赢家:</p>
+                  <p className="text-sm text-gray-300">Winner:</p>
                   <p className="font-bold text-white bg-purple-500/20 px-2 py-0.5 rounded-md">
                     {formatAddress(previewResult.ownPlayer)}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">赢家奖励:</p>
+                  <p className="text-sm text-gray-300">Winner Reward:</p>
                   <p className="font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-md flex items-center">
                     <Zap size={14} className="mr-1" />
                     {Number(previewResult.ownAmount) / 1_000_000_000} SUI
@@ -684,14 +684,14 @@ export default function GameBoard({ accountAddress }: Props) {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">首位玩家:</p>
+                  <p className="text-sm text-gray-300">First Player:</p>
                   <p className="font-bold text-white bg-amber-500/20 px-2 py-0.5 rounded-md">
                     {formatAddress(previewResult.firstPlayer)}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-gray-300">首位奖励:</p>
+                  <p className="text-sm text-gray-300">First Reward:</p>
                   <p className="font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-md flex items-center">
                     <Zap size={14} className="mr-1" />
                     {Number(previewResult.firstAmount) / 1_000_000_000} SUI
@@ -707,7 +707,7 @@ export default function GameBoard({ accountAddress }: Props) {
                   className="bg-gray-800/80 text-white hover:bg-gray-700 border-white/10 rounded-full px-5 shadow-lg transition-all hover:scale-105"
                 >
                   <Home size={16} className="mr-2" />
-                  返回首页
+                  Back to Home
                 </Button>
               </Link>
               <Button
@@ -715,7 +715,7 @@ export default function GameBoard({ accountAddress }: Props) {
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 shadow-lg transition-all hover:scale-105"
               >
                 <Trophy size={16} className="mr-2" />
-                查看排行榜
+                View Leaderboard
               </Button>
             </div>
           </motion.div>
@@ -727,70 +727,70 @@ export default function GameBoard({ accountAddress }: Props) {
         <DialogContent className="bg-gradient-to-b from-gray-900 to-black border-white/10 text-white rounded-xl shadow-xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              游戏规则
+              Game Rules
             </DialogTitle>
-            <DialogDescription className="text-gray-300">TokenTown 堆堆乐游戏规则说明</DialogDescription>
+            <DialogDescription className="text-gray-300">TokenTown Stacking Game Rules</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <div className="bg-white/5 p-4 rounded-lg">
               <h3 className="mb-2 font-medium text-blue-400 flex items-center">
                 <div className="w-1 h-4 bg-blue-400 rounded-full mr-2"></div>
-                基本规则
+                Basic Rules
               </h3>
               <ul className="space-y-2 pl-4">
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     1
                   </span>
-                  初始获得30张卡牌分配至7个卡槽
+                  Start with 30 cards distributed into 7 slots
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     2
                   </span>
-                  从卡槽中选定一类卡牌为目标堆叠卡
+                  Select a card type from the slots as the target stack
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     3
                   </span>
-                  只能将相同类型卡牌堆叠至目标卡槽
+                  Only cards of the same type can be stacked in the target slot
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     4
                   </span>
-                  每日前6次抽卡免费，之后每次抽卡0.2 SUI
+                  The first 6 draws each day are free, after that each draw costs 0.2 SUI
                 </li>
               </ul>
               <h4 className="mt-3 mb-1 font-medium text-red-400 bg-red-500/10 p-2 rounded-lg">
-                结束之前，已经提交了的玩家可以再次提交哟（取最高成绩）
+                Before the end, players who have already submitted can submit again (the highest score will be taken)
               </h4>
             </div>
 
             <div className="bg-white/5 p-4 rounded-lg">
               <h3 className="mb-2 font-medium text-green-400 flex items-center">
                 <div className="w-1 h-4 bg-green-400 rounded-full mr-2"></div>
-                奖励机制
+                Reward Mechanism
               </h3>
               <ul className="space-y-2 pl-4">
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     1
                   </span>
-                  若当日有人付费抽卡，排名第1名玩家可获得金库一半的奖励
+                  If someone pays to draw cards today, the 1st place player will receive half of the vault as a reward
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     2
                   </span>
-                  若当日有人付费抽卡，作为激励最后提交者可获得1/6金库奖励
+                  If someone pays to draw cards today, the last submitter will receive 1/6 of the vault as a reward
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     3
                   </span>
-                  第一位付费提交者可获得1/3金库奖励
+                  The first paid submitter will receive 1/3 of the vault as a reward
                 </li>
               </ul>
             </div>
@@ -804,7 +804,7 @@ export default function GameBoard({ accountAddress }: Props) {
           <DialogHeader>
             <DialogTitle className="text-xl bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent flex items-center">
               <Trophy className="mr-2 h-5 w-5 text-yellow-400" />
-              今日排行榜
+              Today's Leaderboard
             </DialogTitle>
           </DialogHeader>
           <Rankings />

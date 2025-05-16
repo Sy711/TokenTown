@@ -54,7 +54,7 @@ export default function DraggableCard({
         willChange: "transform",
       }}
       whileHover={isTopCard ? {} : {}}
-      animate={isDragging ? { scale: 1.05 } : { scale: 1 }}
+            animate={isDragging ? { scale: 1.05 } : { scale: 1 }}
     >
       <div className="relative">
         <div

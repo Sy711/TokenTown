@@ -3,7 +3,7 @@
 import { useDroppable } from "@dnd-kit/core"
 import { cn } from "@/lib/utils"
 import DraggableCard from "./DraggableCard"
-import type { CardSlots, CardType } from "@/types/game-types"
+import type { CardSlots, CardType, Card } from "@/types/game-types"
 import { motion } from "framer-motion"
 
 interface CardSlotProps {
@@ -44,12 +44,19 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
     return count
   }
 
+  // 获取下一张不同类型的卡牌
+  const getNextDifferentCard = (currentType: CardType): Card | null => {
+    const topConsecutiveCount = getTopConsecutiveCount(currentType)
+    const nextCardIndex = slot.cards.length - 1 - topConsecutiveCount
+    return nextCardIndex >= 0 ? slot.cards[nextCardIndex] : null
+  }
+
   return (
     <div className="flex flex-col items-center space-y-1">
        <div
         ref={setNodeRef}
         className={cn(
-          "h-[300px] w-full rounded-xl bg-gradient-to-br from-yellow-900/20 to-amber-900/10 p-1 relative transition-all duration-300 border border-yellow-500/20",
+          "h-[280px] w-full rounded-xl bg-gradient-to-br from-yellow-900/20 to-amber-900/10 p-1 relative transition-all duration-300 border border-yellow-500/20",
           isOver && "from-yellow-900/30 to-amber-900/20 border-yellow-500/40 shadow-lg shadow-yellow-500/10",
           slot.cards.length === 0 && "border-dashed",
         )}
@@ -58,6 +65,7 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
           {slot.cards.map((card, index) => {
             const isTopCard = index === slot.cards.length - 1
             const topConsecutiveCount = isTopCard ? getTopConsecutiveCount(card.type) : 1
+            const nextDifferentCard = isTopCard ? getNextDifferentCard(card.type) : null
             return (
               <DraggableCard
                 key={card.id}
@@ -67,6 +75,7 @@ export default function CardSlot({ slot, isDisabled, selectedType }: CardSlotPro
                 isDisabled={isDisabled}
                 sameTypeCount={topConsecutiveCount}
                 selectedType={selectedType}
+                nextDifferentCard={nextDifferentCard}
               />
             )
           })}

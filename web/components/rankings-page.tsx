@@ -58,24 +58,23 @@ getPaymentEvents().then((value) => {
       <div className="mb-6 flex items-center justify-between rounded-lg bg-black/30 p-3 backdrop-blur-sm">
         <Link href="/" className="flex items-center gap-2 text-white">
           <ArrowLeft size={18} />
-          <span className="font-medium">返回</span>
+          <span className="font-medium">Back</span>
         </Link>
         <div className="flex items-center gap-2">
           <Users size={18} className="text-blue-400" />
-          <span className="text-sm font-medium text-white">限制名额: 5名</span>
+          <span className="text-sm font-medium text-white">Limit: 5 players</span>
         </div>
-        
       </div>
 
       {/* 主要内容 */}
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-white">TokenTown 排行榜</h1>
-          <p className="mt-1 text-gray-300">当前金库总额:{vaultAmount} SUI</p>
+          <h1 className="text-3xl font-bold text-white">TokenTown Leaderboard</h1>
+          <p className="mt-1 text-gray-300">Current Vault: {vaultAmount} SUI</p>
         </div>
 
         <Card className="w-full bg-black/20 p-4 mt-4">
-          <h2 className="text-xl font-bold text-white mb-4 text-center">今日排行</h2>
+          <h2 className="text-xl font-bold text-white mb-4 text-center">Today's Ranking</h2>
 
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
@@ -87,16 +86,16 @@ getPaymentEvents().then((value) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Info size={16} className="text-blue-400" />
-                    <span className="text-sm text-gray-300">仅限前5名玩家参与游戏</span>
+                    <span className="text-sm text-gray-300">Only the top 5 players can participate</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-lg bg-black/40 p-4">
                 <div className="mb-3 grid grid-cols-12 text-xs font-medium text-white">
-                  <div className="col-span-1">排名</div>
-                  <div className="col-span-4">玩家</div>
-                  <div className="col-span-3">卡牌数</div>
+                  <div className="col-span-1">Rank</div>
+                  <div className="col-span-4">Player</div>
+                  <div className="col-span-3">Cards</div>
                 </div>
                 <div className="space-y-2">
                   {rankings.map((item: DailyLeaderboardEvent, idx: number) => (
@@ -108,18 +107,16 @@ getPaymentEvents().then((value) => {
                     >
                       <div className="col-span-1 font-bold text-white">{idx + 1}</div>
                       <div className="col-span-4 flex items-center gap-1 text-white">
-                      {formatAddress(item.player)}
-                      {firstPlayer && item.player === firstPlayer && (
-                          <span className="rounded bg-purple-500/30 px-1 py-0.5 text-xs text-purple-300">首位提交</span>
+                        {formatAddress(item.player)}
+                        {firstPlayer && item.player === firstPlayer && (
+                          <span className="rounded bg-purple-500/30 px-1 py-0.5 text-xs text-purple-300">First Submit</span>
                         )}
                       </div>
-                      <div className="col-span-3 text-white">{item.card_count}张</div>
+                      <div className="col-span-3 text-white">{item.card_count} cards</div>
                     </div>
                   ))}
                 </div>
               </div>
-
-             
             </>
           )}
         </Card>

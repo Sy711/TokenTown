@@ -72,7 +72,7 @@ export default function HomeScreen() {
             className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-105"
           >
             <Info size={16} />
-            <span>游戏规则</span>
+            <span>Game Rules</span>
           </button>
           <ConnectButton />
         </div>
@@ -90,7 +90,7 @@ export default function HomeScreen() {
             <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Token</span>
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Town</span>
           </h1>
-          <p className="mt-2 text-lg text-[#a0aec0]">区块链卡牌堆叠游戏</p>
+          <p className="mt-2 text-lg text-[#a0aec0]">Blockchain Card Stacking Game</p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -100,7 +100,7 @@ export default function HomeScreen() {
             >
               <Trophy size={16} className="text-yellow-400" />
               <span>
-                今日奖池: <span className="font-bold text-white">{vaultAmount}</span> SUI
+                Today's Prize Pool: <span className="font-bold text-white">{vaultAmount}</span> SUI
               </span>
             </motion.div>
 
@@ -112,7 +112,7 @@ export default function HomeScreen() {
             >
               <Coins size={16} className="text-yellow-400" />
               <span>
-                参与人数: <span className="font-bold text-white">{leaderboardCount}/5</span>
+                Participants: <span className="font-bold text-white">{leaderboardCount}/5</span>
               </span>
             </motion.div>
           </div>
@@ -139,7 +139,7 @@ export default function HomeScreen() {
             {isLoading ? (
               <div className="flex items-center">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
-                <span className="relative z-10 text-xl">加载中...</span>
+                <span className="relative z-10 text-xl">Loading...</span>
               </div>
             ) : account ? (
               <Link
@@ -148,7 +148,7 @@ export default function HomeScreen() {
                 onClick={(e) => leaderboardCount >= 5 && e.preventDefault()}
               >
                 <span className="relative z-10 text-xl flex items-center">
-                  {leaderboardCount >= 5 ? "今日已满" : "开始游戏"}
+                  {leaderboardCount >= 5 ? "Full Today" : "Start Game"}
                   <ChevronRight className="ml-1 h-5 w-5" />
                 </span>
                 <span className="absolute inset-0 bg-gradient-to-r from-[#0DC3A4] to-[#4DA2FF] opacity-0 transition-opacity duration-300 hover:opacity-100"></span>
@@ -156,7 +156,7 @@ export default function HomeScreen() {
             ) : (
               <span className="relative z-10 text-xl flex items-center">
                 <Sparkles className="mr-2 h-5 w-5" />
-                连接钱包
+                Connect Wallet
               </span>
             )}
           </motion.div>
@@ -168,14 +168,14 @@ export default function HomeScreen() {
             <DialogContent className="bg-gradient-to-b from-gray-900 to-black border border-white/10 text-white rounded-xl">
               <DialogHeader>
                 <DialogTitle className="text-xl bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
-                  每日限制
+                  Daily Limit
                 </DialogTitle>
-                <DialogDescription className="text-gray-300">游戏参与人数已达上限</DialogDescription>
+                <DialogDescription className="text-gray-300">The number of participants has reached the daily limit</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 text-sm">
                 <div className="bg-red-500/10 p-4 rounded-lg border border-red-500/20">
-                  <p>今日游戏参与人数已达到5人上限，请明天再来参与！</p>
-                  <p className="mt-2">您可以查看当前排行榜，了解今日游戏情况。</p>
+                  <p>The number of participants for today's game has reached the limit of 5. Please come back tomorrow!</p>
+                  <p className="mt-2">You can check the current leaderboard to see today's game status.</p>
                 </div>
                 <div className="flex justify-center">
                   <Link href="/rankings">
@@ -185,7 +185,7 @@ export default function HomeScreen() {
                       className="flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-2 font-medium text-white shadow-lg"
                     >
                       <Trophy size={16} />
-                      <span>查看排行榜</span>
+                      <span>View Leaderboard</span>
                     </motion.button>
                   </Link>
                 </div>
@@ -204,7 +204,7 @@ export default function HomeScreen() {
             className="flex items-center justify-center gap-2 rounded-full bg-white/10 px-8 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/20 border border-white/5 shadow-lg"
           >
             <Trophy size={20} />
-            <span>查看排行榜</span>
+            <span>View Leaderboard</span>
           </motion.button>
         </Link>
       </div>
@@ -214,70 +214,70 @@ export default function HomeScreen() {
         <DialogContent className="bg-gradient-to-b from-gray-900 to-black border-white/10 text-white rounded-xl shadow-xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              游戏规则
+              Game Rules
             </DialogTitle>
-            <DialogDescription className="text-gray-300">TokenTown 堆堆乐游戏规则说明</DialogDescription>
+            <DialogDescription className="text-gray-300">TokenTown Stacking Game Rules</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <div className="bg-white/5 p-4 rounded-lg">
               <h3 className="mb-2 font-medium text-blue-400 flex items-center">
                 <div className="w-1 h-4 bg-blue-400 rounded-full mr-2"></div>
-                基本规则
+                Basic Rules
               </h3>
               <ul className="space-y-2 pl-4">
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     1
                   </span>
-                  初始获得30张卡牌分配至7个卡槽
+                  Start with 30 cards distributed into 7 slots
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     2
                   </span>
-                  从卡槽中选定一类卡牌为目标堆叠卡
+                  Select a card type from the slots as the target stack
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     3
                   </span>
-                  只能将相同类型卡牌堆叠至目标卡槽
+                  Only cards of the same type can be stacked in the target slot
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-blue-500/20 text-center text-xs leading-5 mr-2">
                     4
                   </span>
-                  每日前6次抽卡免费，之后每次抽卡0.2 SUI
+                  The first 6 draws each day are free, after that each draw costs 0.2 SUI
                 </li>
               </ul>
               <h4 className="mt-3 mb-1 font-medium text-red-400 bg-red-500/10 p-2 rounded-lg">
-                结束之前，已经提交了的玩家可以再次提交哟（取最高成绩）
+                Before the end, players who have already submitted can submit again (the highest score will be taken)
               </h4>
             </div>
 
             <div className="bg-white/5 p-4 rounded-lg">
               <h3 className="mb-2 font-medium text-green-400 flex items-center">
                 <div className="w-1 h-4 bg-green-400 rounded-full mr-2"></div>
-                奖励机制
+                Reward Mechanism
               </h3>
               <ul className="space-y-2 pl-4">
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     1
                   </span>
-                  若当日有人付费抽卡，排名第1名玩家可获得金库一半的奖励
+                  If someone pays to draw cards today, the 1st place player will receive half of the vault as a reward
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     2
                   </span>
-                  若当日有人付费抽卡，作为激励最后提交者可获得1/6金库奖励
+                  If someone pays to draw cards today, the last submitter will receive 1/6 of the vault as a reward
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block w-5 h-5 rounded-full bg-green-500/20 text-center text-xs leading-5 mr-2">
                     3
                   </span>
-                  第一位付费提交者可获得1/3金库奖励
+                  The first paid submitter will receive 1/3 of the vault as a reward
                 </li>
               </ul>
             </div>

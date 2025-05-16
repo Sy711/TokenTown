@@ -65,7 +65,7 @@ export default function TrashBin({ error, success }: TrashBinProps) {
               <div className="bg-green-500/20 p-2 rounded-full mb-2">
                 <Check size={24} className="text-green-400" />
               </div>
-              <p className="text-center text-xs text-green-400">丢弃成功!</p>
+              <p className="text-center text-xs text-green-400">Discarded successfully!</p>
             </motion.div>
           ) : (
             <motion.div
@@ -85,9 +85,9 @@ export default function TrashBin({ error, success }: TrashBinProps) {
                 <Trash2 size={24} className={cn("transition-colors", isOver ? "text-yellow-400" : "text-gray-400")} />
               </div>
               <p className="text-center text-xs text-gray-400">
-                拖拽卡牌到此处丢弃
+                Drag cards here to discard
                 <br />
-                <span className="text-green-400 font-medium">绿色标记</span>表示可丢弃(≥10张)
+                <span className="text-green-400 font-medium">Green mark</span> means discardable (≥10 cards)
               </p>
             </motion.div>
           )}

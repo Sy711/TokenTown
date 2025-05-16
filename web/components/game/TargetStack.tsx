@@ -43,11 +43,11 @@ export default function TargetStack({ cards, selectedType, isLocked }: TargetSta
       {cards.length === 0 ? (
         <div className="text-center text-gray-400 z-10 flex flex-col items-center">
           {isLocked ? (
-            <span className="bg-gray-800/80 px-3 py-1 rounded-full text-sm backdrop-blur-sm">已锁定</span>
+            <span className="bg-gray-800/80 px-3 py-1 rounded-full text-sm backdrop-blur-sm">Locked</span>
           ) : (
             <>
               <Target className="h-8 w-8 mb-2 text-yellow-500/70" />
-              <span className="bg-black/50 px-3 py-1 rounded-full text-sm backdrop-blur-sm">拖拽卡牌到这里</span>
+              <span className="bg-black/50 px-3 py-1 rounded-full text-sm backdrop-blur-sm">Drag cards here</span>
             </>
           )}
         </div>
@@ -85,7 +85,7 @@ export default function TargetStack({ cards, selectedType, isLocked }: TargetSta
 
           <div className="absolute right-4 bottom-4 z-20">
             <span className="flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-sm font-medium text-white shadow-lg border border-white/10">
-              <span className="text-green-400">{cards.length}</span> 张
+              <span className="text-green-400">{cards.length}</span> cards
             </span>
           </div>
 
