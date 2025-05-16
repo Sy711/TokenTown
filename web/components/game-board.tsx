@@ -298,7 +298,7 @@ export default function GameBoard({ accountAddress }: Props) {
   // 抽取新卡
   const handleDrawCards = () => {
     if (!accountAddress) {
-      message.error("请先连接钱包")
+      messageApi.error("请先连接钱包")
       return
     }
     setIsLoading(true)
@@ -308,7 +308,8 @@ export default function GameBoard({ accountAddress }: Props) {
     const currentBalance = Number(balance?.totalBalance || 0) / 1e9
     if (drawCount >= 6) {
       if (currentBalance < 0.2) {
-        message.error("余额不足，无法抽卡")
+        messageApi.error("余额不足，无法抽卡")
+        console.log("余额不足，无法抽卡")
         setIsLoading(false)
         setShowDrawAnimation(false)
         return
@@ -388,7 +389,7 @@ export default function GameBoard({ accountAddress }: Props) {
   // 提交卡组
   const handleSubmit = async (cardCount: number) => {
     if (targetStack.length === 0) {
-      message.warning("请先选择卡牌")
+      messageApi.warning("请先选择卡牌")
       return
     }
 
@@ -399,7 +400,7 @@ export default function GameBoard({ accountAddress }: Props) {
     previewIncentiveSubmit({ cardCount: cardCount, time: currentDay })
       .onSuccess(async (result) => {
         console.log("提交成功", result)
-        message.success("提交成功！")
+        messageApi.success("提交成功！")
         setTimeout(() => {
           setGameState("submitted")
           setIsLoading(false)
